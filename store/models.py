@@ -49,10 +49,13 @@ class Product(models.Model):
         # Валидация на формат размера
         data = self.size.split('-')
         if len(data) != 2 or int(data[0]) > int(data[1]):
-            raise ValidationError('Формат не совпадает! Введите корректные данные!')
+            raise ValidationError('Формат размера не совпадает! Введите корректные данные!')
         # Валидация коллекции
-        if self.collection.deleted:
-            raise ValidationError('Коллекция была удалена! Выберите другую коллекцию')
+        try:
+            if self.collection.deleted:
+                raise ValidationError('Коллекция была удалена! Выберите другую коллекцию')
+        except Collection.DoesNotExist:
+            raise ValidationError('Коллекция не найдена! Выберите другую коллекцию')
 
     class Meta:
         verbose_name = 'Продукт'
@@ -84,12 +87,18 @@ class ChildrenProduct(models.Model):
         super().save(*args, **kwargs)
 
     def clean(self):
-        # Валидация на максимум
-        if len(ChildrenProduct.objects.filter(product=self.product)) > 8:
-            raise ValidationError('Количество цветов не должно превышать 8ми!')
-        # Валидация на цвет
-        if len(ChildrenProduct.objects.filter(product=self.product, color_id=self.color.pk)) > 0 and ChildrenProduct.objects.get(product=self.product, color_id=self.color.pk) != self:
-            raise ValidationError('Подпродукт с таким цветом уже есть!')
+        try:
+            # Проверка это обновление или нет
+            if not ChildrenProduct.objects.get(pk=self.pk):
+                # Валидация на максимум
+                if len(ChildrenProduct.objects.filter(product=self.product, deleted=False)) >= 8:
+                    raise ValidationError('Количество цветов не должно превышать 8ми!')
+            # Валидация на цвет
+            product_by_color = ChildrenProduct.objects.filter(product=self.product, color_id=self.color.pk, deleted=False)
+            if len(product_by_color) > 0 and product_by_color[0] != self:
+                raise ValidationError('Подпродукт с таким цветом уже есть!')
+        except ChildrenProduct.DoesNotExist:
+            raise ValidationError('Подпродукт не найден!')
         # Валидация изображения
         if not (1.5 <= self.image.height / self.image.width <= 1.6):
             raise ValidationError('Изображение не подходит')

@@ -42,8 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'store.apps.StoreConfig',
-    'ckeditor'
+    'ckeditor',
 
 ]
 
@@ -163,4 +164,12 @@ CKEDITOR_CONFIGS = {
             ['Maximize', 'ShowBlocks']
         ],
     }
+}
+
+# DRF config
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DATETIME_INPUT_FORMATS': ['%Y-%m-%d %H:%M'],
+    'DATETIME_FORMAT': '%Y-%m-%d %H:%M',
+    'PAGE_SIZE': 8
 }

@@ -16,6 +16,14 @@ class ProductForm(forms.ModelForm):
         fields = '__all__'
 
 
+class OrderItemInline(admin.StackedInline):
+    """
+    Продукты заказа
+    """
+    model = OrderItem
+    extra = 3
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     """
@@ -37,7 +45,7 @@ class ChildrenProductAdmin(admin.ModelAdmin):
     """
     Подпродукт в админке
     """
-    list_display = ('product', 'color', 'start_date', 'end_date', 'update_date', 'get_image', 'amount', 'deleted')
+    list_display = ('id', 'product', 'color', 'start_date', 'end_date', 'update_date', 'get_image', 'amount', 'deleted')
     list_display_links = ('product', 'get_image')
     list_filter = ('product', 'color', 'start_date', 'end_date', 'update_date', 'deleted')
     list_editable = ('deleted',)
@@ -59,7 +67,7 @@ class CollectionAdmin(admin.ModelAdmin):
     """
     Коллекция в продукте
     """
-    list_display = ('name', 'start_date', 'end_date', 'update_date', 'get_image', 'deleted')
+    list_display = ('id', 'name', 'start_date', 'end_date', 'update_date', 'get_image', 'deleted')
     list_display_links = ('name', 'get_image')
     list_filter = ('name', 'start_date', 'end_date', 'update_date', 'deleted')
     list_editable = ('deleted',)
@@ -81,20 +89,12 @@ class ColorAdmin(admin.ModelAdmin):
     """
     Цвета в админке
     """
-    list_display = ('color', 'get_color')
+    list_display = ('id', 'color', 'get_color')
     list_display_links = ('color',)
     search_fields = ('color', 'rgb')
 
     def get_color(self, obj):
-        return mark_safe(f'<p style="color: {obj.rgb}">{obj.name}</p>')
-
-
-class OrderItemInline(admin.StackedInline):
-    """
-    Продукты заказа
-    """
-    model = OrderItem
-    extra = 3
+        return mark_safe(f'<p style="color: {obj.rgb}">{obj.color}</p>')
 
 
 @admin.register(Order)
@@ -153,7 +153,7 @@ class OrderStatusAdmin(admin.ModelAdmin):
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ('order', 'children_product', 'get_product_price', 'quantity', 'total_price',
+    list_display = ('id', 'order', 'children_product', 'get_product_price', 'quantity', 'total_price',
                     'get_product_color', 'get_product_size', 'get_product_old_price', 'get_product_image')
     list_display_links = ('order', 'children_product')
     readonly_fields = ('total_price', 'get_product_price', 'get_product_color', 'get_product_size',
