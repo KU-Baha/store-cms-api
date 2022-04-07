@@ -135,7 +135,7 @@ class OrderAdmin(admin.ModelAdmin):
         return products_price
 
     def get_total_price(self, obj):
-        products_price = sum([i.get_cost() for i in self.get_products(obj)])
+        products_price = sum([i.total_price for i in self.get_products(obj)])
         return products_price
 
     get_products_numbers_in_ruler.short_description = 'Количество в линейках'
@@ -156,8 +156,12 @@ class OrderItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'order', 'children_product', 'get_product_price', 'quantity', 'total_price',
                     'get_product_color', 'get_product_size', 'get_product_old_price', 'get_product_image')
     list_display_links = ('order', 'children_product')
+    list_filter = ('order',)
     readonly_fields = ('total_price', 'get_product_price', 'get_product_color', 'get_product_size',
                        'get_product_old_price', 'get_product_image')
+    search_fields = ('order__first_name', 'order__last_name', 'children_product__product__name')
+    fields = ('order', 'children_product', 'get_product_price', 'quantity', 'total_price', 'get_product_color',
+              'get_product_size', 'get_product_old_price', 'get_product_image')
 
     def get_product_price(self, obj):
         return obj.children_product.product.price

@@ -173,7 +173,7 @@ class Order(models.Model):
     phone_number = models.CharField('Телефонный номер', max_length=20)
     country = models.CharField('Страна', max_length=50)
     city = models.CharField('Город', max_length=50)
-    create_date = models.DateTimeField('Дата оформления', auto_now=True)
+    issue_date = models.DateTimeField('Дата оформления', auto_now=True)
     status = models.ForeignKey('OrderStatus', on_delete=models.DO_NOTHING, verbose_name='Статус заказа', default=1)
     start_date = models.DateTimeField('Дата создания', auto_now=True)
     end_date = models.DateTimeField('Дата удаления', null=True, blank=True)
@@ -201,7 +201,7 @@ class OrderStatus(models.Model):
     Модель статус заказа
     Внешняя связь с Order
     """
-    name = models.CharField('Статус заказа', max_length=15)
+    name = models.CharField('Статус заказа', max_length=20)
 
     def __str__(self):
         return self.name
@@ -223,20 +223,25 @@ class OrderItem(models.Model):
 
     def save(self, *args, **kwargs):
         product = ChildrenProduct.objects.get(pk=self.children_product.pk)
-        # product.amount -= self.quantity
-        # product.save()
+        product.amount -= self.quantity
+        product.save()
         self.total_price = product.product.price * self.quantity
         super().save(*args, **kwargs)
 
+    def delete(self, using=None, keep_parents=False):
+        product = ChildrenProduct.objects.get(pk=self.children_product.pk)
+        product.amount += self.quantity
+        product.save()
+        super(OrderItem, self).delete()
+
     def clean(self):
+        if not self._state.adding:
+            raise ValidationError('Обновление запрещено!')
         if self.children_product.amount < self.quantity:
             raise ValidationError('На складе меньше товаров, чем вы запросили!')
 
-    def get_cost(self):
-        return self.children_product.product.price * self.quantity
-
     def __str__(self):
-        return self.order.__str__()
+        return f'{self.order} - {self.children_product}'
 
     class Meta:
         verbose_name = 'Продукт заказа'

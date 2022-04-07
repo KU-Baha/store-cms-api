@@ -2,7 +2,9 @@ from django.urls import path
 from .views import (
     ProductViewSet,
     ChildrenProductViewSet,
-    CollectionViewSet
+    CollectionViewSet,
+    OrderViewSet,
+    OrderItemViewSet
 )
 urlpatterns = [
     path('products/', ProductViewSet.as_view({'get': 'list', 'post': 'create'})),
@@ -16,5 +18,9 @@ urlpatterns = [
     path('collections/', CollectionViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('collection/<int:pk>/', CollectionViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy',
                                                             'patch': 'partial_update'})),
+    path('order/', OrderViewSet.as_view({'post': 'create'})),
+    path('order/<int:pk>/', OrderViewSet.as_view({'get': 'retrieve'})),
+    path('order/<int:pk>/items/', OrderItemViewSet.as_view({'get': 'list'})),
+    path('order/item/<int:pk>/', OrderItemViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})),
 ]
 

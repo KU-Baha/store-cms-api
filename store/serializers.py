@@ -124,3 +124,27 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ('id', 'collection', 'collection_name', 'name', 'vendor_code', 'price', 'old_price', 'discount',
                   'description', 'size', 'sizes', 'fabric_structure', 'number_in_ruler', 'material', 'bestseller',
                   'novelty', 'children_products', 'start_date', 'update_date')
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    """
+    Продукты заказа
+    """
+    total_price = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ('id', 'order', 'children_product', 'quantity', 'total_price')
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    """
+    Заказ
+    """
+    items = OrderItemSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Order
+        fields = ('id', 'first_name', 'last_name', 'mail', 'phone_number', 'country', 'city', 'issue_date', 'status',
+                  'start_date', 'update_date', 'items')
+
