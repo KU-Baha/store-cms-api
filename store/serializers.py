@@ -3,13 +3,30 @@ from .models import Product, ChildrenProduct, Collection, Color, Order, OrderSta
 from django.core.files.images import get_image_dimensions
 
 
-class CollectionListSerializer(serializers.ModelSerializer):
+class CollectionSerializer(serializers.ModelSerializer):
     """
     Сериализатор Коллекций
     """
+    image = serializers.ImageField(required=False)
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.image = validated_data.get('image', instance.image)
+        instance.save()
+        return instance
+
+    def validate(self, data):
+        image = data.get('image')
+        if image:
+            width, height = get_image_dimensions(image)
+            # Валидация изображение
+            if not (1.11 <= height / width <= 1.19):
+                raise serializers.ValidationError('Изображение не подходит')
+        return data
+
     class Meta:
         model = Collection
-        fields = ('id', 'name', 'image')
+        fields = ('id', 'name', 'image', 'start_date', 'update_date')
 
 
 class ChildrenProductSerializer(serializers.ModelSerializer):

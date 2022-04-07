@@ -1,13 +1,18 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
 from .serializers import (
     ProductSerializer,
-    ChildrenProductSerializer
+    ChildrenProductSerializer,
+    CollectionSerializer
 )
 from .models import (
     Product,
-    ChildrenProduct
+    ChildrenProduct,
+    Collection
 )
 
 
@@ -16,9 +21,12 @@ class ProductViewSet(viewsets.ModelViewSet):
     Продукт
     Реализованы все базовые методы ModelViewSet
     Реализован свой метод similar для получение похожих товаров
+    Поиск по названию
     """
     serializer_class = ProductSerializer
     queryset = Product.objects.filter(deleted=False)
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    search_fields = ('name', )
 
     def similar(self, request, pk=None, qt=None):
         """
@@ -38,6 +46,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 class ChildrenProductViewSet(viewsets.ModelViewSet):
     """
     Подпродукт
+    Реализованы все базовые методы ModelViewSet кроме destroy
     """
     serializer_class = ChildrenProductSerializer
     queryset = ChildrenProduct.objects.filter(deleted=False)
@@ -47,3 +56,18 @@ class ChildrenProductViewSet(viewsets.ModelViewSet):
         queryset.deleted = True
         queryset.save()
         return Response('Успешно удален!', status=status.HTTP_200_OK)
+
+
+class CollectionViewSet(viewsets.ModelViewSet):
+    """
+    Коллекция
+    """
+    serializer_class = CollectionSerializer
+    queryset = Collection.objects.filter(deleted=False)
+
+    def destroy(self, request, pk=None):
+        queryset = get_object_or_404(Collection, pk=pk)
+        queryset.deleted = True
+        queryset.save()
+        return Response('Успешно удален!', status=status.HTTP_200_OK)
+
