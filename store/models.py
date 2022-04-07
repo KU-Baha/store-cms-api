@@ -213,7 +213,7 @@ class OrderItem(models.Model):
     total_price = models.PositiveIntegerField('Общая цена', null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        # product = ChildrenProduct.objects.get(pk=self.children_product.pk)
+        product = ChildrenProduct.objects.get(pk=self.children_product.pk)
         # product.amount -= self.quantity
         # product.save()
         self.total_price = product.product.price * self.quantity
