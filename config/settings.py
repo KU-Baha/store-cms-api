@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 load_dotenv()
 
@@ -42,11 +45,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'drf_yasg',
     'rest_framework',
     'django_filters',
     'store.apps.StoreConfig',
     'ckeditor',
-
+    'cloudinary'
 ]
 
 MIDDLEWARE = [
@@ -174,3 +178,10 @@ REST_FRAMEWORK = {
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M',
     'PAGE_SIZE': 8
 }
+
+# adding config
+cloudinary.config(
+  cloud_name="dnrwypf6x",
+  api_key="325563516139846",
+  api_secret="ZtNIQcHFl6i_mI2g6avB2a5kzC4"
+)

@@ -2,8 +2,10 @@ from django.core.validators import MinValueValidator
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.core.files.images import get_image_dimensions
 from colorful.fields import RGBColorField
 from datetime import datetime, timezone
+from cloudinary.models import CloudinaryField
 
 
 class Product(models.Model):
@@ -71,7 +73,7 @@ class ChildrenProduct(models.Model):
     """
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Продукт', related_name='children_products')
     color = models.ForeignKey('Color', on_delete=models.DO_NOTHING, verbose_name='Цвет', related_name='children_products')
-    image = models.ImageField('Изображение')
+    image = CloudinaryField('Изображение')
     amount = models.PositiveSmallIntegerField('Количество на складе', default=0)
     start_date = models.DateTimeField('Дата создания', auto_now=True)
     end_date = models.DateTimeField('Дата удаления', null=True, blank=True)
@@ -100,8 +102,13 @@ class ChildrenProduct(models.Model):
         except ChildrenProduct.DoesNotExist:
             raise ValidationError('Подпродукт не найден!')
         # Валидация изображения
-        if not (1.5 <= self.image.height / self.image.width <= 1.6):
-            raise ValidationError('Изображение не подходит')
+        if self.image:
+            try:
+                width, height = get_image_dimensions(self.image)
+                if not (1.5 <= height / width <= 1.6):
+                    raise ValidationError('Изображение не подходит')
+            except TypeError:
+                pass
 
     def __str__(self):
         return f'{self.product} - {self.color}: {self.amount}'
@@ -117,7 +124,7 @@ class Collection(models.Model):
     Внешние связи: Product
     """
     name = models.CharField('Название', max_length=50)
-    image = models.ImageField('Изображение')
+    image = CloudinaryField('Изображение', blank=False)
     start_date = models.DateTimeField('Дата создания', auto_now=True)
     end_date = models.DateTimeField('Дата удаления', null=True, blank=True)
     update_date = models.DateTimeField('Дата последнего изменения', auto_now_add=True)
@@ -133,8 +140,13 @@ class Collection(models.Model):
 
     def clean(self):
         # Валидация изображение
-        if not (1.11 <= self.image.height / self.image.width <= 1.19):
-            raise ValidationError('Изображение не подходит')
+        if self.image:
+            try:
+                width, height = get_image_dimensions(self.image)
+                if not (1.11 <= height / width <= 1.19):
+                    raise ValidationError('Изображение не подходит')
+            except TypeError:
+                pass
 
     def __str__(self):
         return self.name

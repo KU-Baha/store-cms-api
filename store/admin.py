@@ -3,6 +3,7 @@ from django.utils.safestring import mark_safe
 from django import forms
 from ckeditor.widgets import CKEditorWidget
 from .models import Product, Color, Collection, Order, OrderStatus, OrderItem, ChildrenProduct
+from cloudinary.forms import CloudinaryJsFileField
 
 
 class ProductForm(forms.ModelForm):
@@ -45,6 +46,8 @@ class ChildrenProductAdmin(admin.ModelAdmin):
     """
     Подпродукт в админке
     """
+    image = CloudinaryJsFileField(required=False)
+
     list_display = ('id', 'product', 'color', 'start_date', 'end_date', 'update_date', 'get_image', 'amount', 'deleted')
     list_display_links = ('product', 'get_image')
     list_filter = ('product', 'color', 'start_date', 'end_date', 'update_date', 'deleted')
@@ -67,6 +70,8 @@ class CollectionAdmin(admin.ModelAdmin):
     """
     Коллекция в продукте
     """
+    image = CloudinaryJsFileField(required=False)
+
     list_display = ('id', 'name', 'start_date', 'end_date', 'update_date', 'get_image', 'deleted')
     list_display_links = ('name', 'get_image')
     list_filter = ('name', 'start_date', 'end_date', 'update_date', 'deleted')
@@ -119,7 +124,7 @@ class OrderAdmin(admin.ModelAdmin):
         return OrderItem.objects.filter(order=obj)
 
     def get_products_numbers_in_ruler(self, obj):
-        numbers_in_ruler = set([i.children_product.product.number_in_ruler for i in self.get_products(obj)])
+        numbers_in_ruler = sum([i.children_product.product.number_in_ruler for i in self.get_products(obj)])
         return numbers_in_ruler
 
     def get_products_count(self, obj):
