@@ -36,7 +36,8 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ('deleted',)
     readonly_fields = ('start_date', 'end_date', 'update_date', 'old_price')
     fields = ('name', 'vendor_code', 'collection', 'price', 'old_price', 'discount', 'description', 'size',
-              'number_in_ruler', 'material', 'bestseller', 'novelty', 'start_date', 'end_date', 'update_date', 'deleted')
+              'number_in_ruler', 'material', 'fabric_structure', 'bestseller', 'novelty', 'start_date',
+              'end_date', 'update_date', 'deleted')
     search_fields = ('name', 'vendor_code', 'collection__name')
     form = ProductForm
 

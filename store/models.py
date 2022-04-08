@@ -91,7 +91,7 @@ class ChildrenProduct(models.Model):
     def clean(self):
         try:
             # Проверка это обновление или нет
-            if not ChildrenProduct.objects.get(pk=self.pk):
+            if self._state.adding:
                 # Валидация на максимум
                 if len(ChildrenProduct.objects.filter(product=self.product, deleted=False)) >= 8:
                     raise ValidationError('Количество цветов не должно превышать 8ми!')

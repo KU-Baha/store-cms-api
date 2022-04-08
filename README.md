@@ -3,7 +3,7 @@
 Instruction
 ___
 1.__Clone this project__
->-- git clone https://github.com/KU-Baha/...
+>-- git clone https://github.com/KU-Baha/store-cms-api
 ___
 2.__Create virtualenv__
 >__Command for Windows__
