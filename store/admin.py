@@ -2,7 +2,15 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django import forms
 from ckeditor.widgets import CKEditorWidget
-from .models import Product, Color, Collection, Order, OrderStatus, OrderItem, ChildrenProduct
+from .models import (
+    Product,
+    Color,
+    Collection,
+    Order,
+    OrderStatus,
+    OrderItem,
+    ChildrenProduct
+)
 from cloudinary.forms import CloudinaryJsFileField
 
 
@@ -69,7 +77,7 @@ class ChildrenProductAdmin(admin.ModelAdmin):
 @admin.register(Collection)
 class CollectionAdmin(admin.ModelAdmin):
     """
-    Коллекция в продукте
+    Коллекция в админке
     """
     image = CloudinaryJsFileField(required=False)
 

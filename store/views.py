@@ -23,8 +23,10 @@ from .models import (
 class ProductViewSet(viewsets.ModelViewSet):
     """
     Продукт
-    Реализованы все базовые методы ModelViewSet
+    Реализованы все базовые методы ModelViewSet, переделан destroy
     Реализован свой метод similar для получение похожих товаров
+    Реализован свой метод bestsellers для получение товаров со статусом "Хит продаж"
+    Реализован свой метод novelties для получение товаров со статусом "Новый"
     Поиск по названию
     """
     serializer_class = ProductSerializer
@@ -50,23 +52,35 @@ class ProductViewSet(viewsets.ModelViewSet):
         """
         Получение товаров со статусом "Хит продаж"
         """
-        queryset = Product.objects.filter(deleted=False, bestseller=True)[0:qt]
-        serializer = self.serializer_class(queryset, many=True)
+        queryset = self.filter_queryset(Product.objects.filter(deleted=False, bestseller=True)[0:qt])
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
     def novelties(self, request, qt=None):
         """
         Получение товаров сос статусом "Новинки"
         """
-        queryset = Product.objects.filter(deleted=False, novelty=True)[0:qt]
-        serializer = self.serializer_class(queryset, many=True)
+        queryset = self.filter_queryset(Product.objects.filter(deleted=False, novelty=True)[0:qt])
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
 
 class ChildrenProductViewSet(viewsets.ModelViewSet):
     """
     Подпродукт
-    Реализованы все базовые методы ModelViewSet кроме destroy
+    Реализованы все базовые методы ModelViewSet, переделан destroy
     """
     serializer_class = ChildrenProductSerializer
     queryset = ChildrenProduct.objects.filter(deleted=False)
@@ -81,7 +95,7 @@ class ChildrenProductViewSet(viewsets.ModelViewSet):
 class CollectionViewSet(viewsets.ModelViewSet):
     """
     Коллекция
-    Реализованы все базовые методы ModelViewSet кроме destroy
+    Реализованы все базовые методы ModelViewSet, переделан destroy
     """
     serializer_class = CollectionSerializer
     queryset = Collection.objects.filter(deleted=False)
@@ -96,7 +110,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
 class OrderViewSet(viewsets.ModelViewSet):
     """
     Заказ
-    Реализованы все базовые методы ModelViewSet
+    Реализованы все базовые методы ModelViewSet, переделан create
             Пример API для создания
         {
         "user_data": {
@@ -138,12 +152,19 @@ class OrderViewSet(viewsets.ModelViewSet):
 class OrderItemViewSet(viewsets.ModelViewSet):
     """
     Продукты заказа
+    Реализованы все базовые методы ModelViewSet, переделан list
     """
     serializer_class = OrderItemSerializer
     queryset = OrderItem.objects.all()
 
     def list(self, request, pk=None, *args, **kwargs):
-        queryset = OrderItem.objects.filter(order_id=pk)
-        serializer = self.serializer_class(queryset, many=True)
+        queryset = self.filter_queryset(OrderItem.objects.filter(order_id=pk))
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
