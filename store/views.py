@@ -46,6 +46,22 @@ class ProductViewSet(viewsets.ModelViewSet):
         queryset.save()
         return Response('Успешно удален!', status=status.HTTP_200_OK)
 
+    def bestsellers(self, request, qt=None):
+        """
+        Получение товаров со статусом "Хит продаж"
+        """
+        queryset = Product.objects.filter(deleted=False, bestseller=True)[0:qt]
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
+    def novelties(self, request, qt=None):
+        """
+        Получение товаров сос статусом "Новинки"
+        """
+        queryset = Product.objects.filter(deleted=False, novelty=True)[0:qt]
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
 
 class ChildrenProductViewSet(viewsets.ModelViewSet):
     """
@@ -128,5 +144,6 @@ class OrderItemViewSet(viewsets.ModelViewSet):
 
     def list(self, request, pk=None, *args, **kwargs):
         queryset = OrderItem.objects.filter(order_id=pk)
-        serializer = OrderItemSerializer(queryset, many=True)
+        serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
+
