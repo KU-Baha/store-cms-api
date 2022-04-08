@@ -181,7 +181,7 @@ REST_FRAMEWORK = {
 
 # adding config
 cloudinary.config(
-  cloud_name="dnrwypf6x",
-  api_key="325563516139846",
-  api_secret="ZtNIQcHFl6i_mI2g6avB2a5kzC4"
+  cloud_name=os.getenv('cloud_name'),
+  api_key=os.getenv('api_key'),
+  api_secret=os.getenv('api_secret')
 )
