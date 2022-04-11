@@ -35,6 +35,7 @@ class ChildrenProductSerializer(serializers.ModelSerializer):
     """
 
     image = serializers.ImageField(required=False)
+    color_name = serializers.CharField(source='color.color', read_only=True)
 
     def update(self, instance, validated_data):
         instance.product = validated_data.get('product', instance.product)
@@ -73,7 +74,7 @@ class ChildrenProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChildrenProduct
-        fields = ('id', 'product', 'color', 'image', 'amount', 'start_date', 'update_date')
+        fields = ('id', 'product', 'color', 'color_name', 'image', 'amount', 'start_date', 'update_date')
 
 
 class ProductSerializer(serializers.ModelSerializer):

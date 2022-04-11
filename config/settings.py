@@ -51,8 +51,9 @@ INSTALLED_APPS = [
     'django_filters',
     'store.apps.StoreConfig',
     'news.apps.NewsConfig',
+    'site_app.apps.SiteAppConfig',
     'ckeditor',
-    'cloudinary'
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -150,7 +151,22 @@ MEDIA_URL = '/media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # STATIC FIELDS
-CHOICES_YES_NO = ((True, 'Да'), (False, 'Нет'))
+CHOICES_YES_NO = (
+    (True, 'Да'),
+    (False, 'Нет'))
+
+CHOICES_SOCIALS = (
+    ('WhatsApp', 'WhatsApp'),
+    ('Instagram', 'Instagram'),
+    ('Telegram', 'Telegram'),
+    ('Mail', 'Почта'),
+    ('Footer phones', 'Номера на футере'),
+)
+
+CHOICES_APPEAL_TYPES = (
+    ('CallBack', 'Обратный звонок'),
+    ('Order', 'Заказ')
+)
 
 # CKEDIROT CONFIG
 CKEDITOR_UPLOAD_PATH = "filer_public/"
