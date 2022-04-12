@@ -4,7 +4,17 @@ from django.contrib import admin
 from ckeditor.widgets import CKEditorWidget
 from django.utils.safestring import mark_safe
 
-from .models import Site, SiteSocial, Social, SliderImage, QuestionAnswer, CallBack, AppealType, AboutUsImage
+from .models import (
+    Site,
+    SiteSocial,
+    Social,
+    SliderImage,
+    QuestionAnswer,
+    CallBack,
+    AppealType,
+    AboutUsImage,
+    OurAdvantages
+)
 
 
 class SiteForm(forms.ModelForm):
@@ -14,7 +24,6 @@ class SiteForm(forms.ModelForm):
     about_us_text = forms.CharField(widget=CKEditorWidget(), label=Site._meta.get_field('about_us_text').verbose_name)
     footer_text = forms.CharField(widget=CKEditorWidget(), label=Site._meta.get_field('footer_text').verbose_name)
     public_offer_text = forms.CharField(widget=CKEditorWidget(), label=Site._meta.get_field('public_offer_text').verbose_name)
-    our_advantages_text = forms.CharField(widget=CKEditorWidget(), label=Site._meta.get_field('our_advantages_text').verbose_name)
 
     class Meta:
         model = Site
@@ -32,7 +41,7 @@ class SiteAdmin(admin.ModelAdmin):
     readonly_fields = ('get_site_logo',)
 
     def get_site_logo(self, obj):
-        return mark_safe(f"<img src={obj.site_logo.url}>")
+        return mark_safe(f"<img src={obj.site_logo.url}>") if obj.site_logo else '-'
 
     get_site_logo.short_description = 'Логотип'
 
@@ -55,9 +64,7 @@ class SocialAdmin(admin.ModelAdmin):
     list_display = ('name', 'get_icon')
 
     def get_icon(self, obj):
-        if obj.icon:
-            return mark_safe(f'<img src={obj.icon.url} width=50 height=50>')
-        return mark_safe("-")
+        return mark_safe(f'<img src={obj.icon.url} width=50 height=50>') if obj.icon else '-'
 
     get_icon.short_description = 'Иконка'
 
@@ -103,7 +110,7 @@ class AboutUsImageAdmin(admin.ModelAdmin):
     ordering = ('id', )
 
     def get_image(self, obj):
-        return mark_safe(f'<img src={obj.image.url} width="50" height="60">')
+        return mark_safe(f'<img src={obj.image.url} width="50" height="60">') if obj.image else '-'
 
     get_image.short_description = 'Изображение'
 
@@ -125,4 +132,31 @@ class AppealTypeAdmin(admin.ModelAdmin):
     list_display = ('name', )
     list_display_links = ('name', )
     ordering = ('id', )
+
+
+class OurAdvantagesForm(forms.ModelForm):
+    """
+    Форма для админ панели "Информация сайта"
+    """
+    text = forms.CharField(widget=CKEditorWidget(), label=OurAdvantages._meta.get_field('text').verbose_name)
+
+    class Meta:
+        model = OurAdvantages
+        fields = '__all__'
+
+
+@admin.register(OurAdvantages)
+class OurAdvantagesAdmin(admin.ModelAdmin):
+    """
+    Админ панель "Наши преимущества"
+    """
+    list_display = ('title', 'get_icon', 'text')
+    list_display_link = ('title', 'get_icon')
+    readonly_fields = ('get_icon',)
+    forms = (OurAdvantagesForm,)
+
+    def get_icon(self, obj):
+        return mark_safe(f'<img src={obj.icon.url} width=50 height=50>') if obj.icon else '-'
+
+    get_icon.short_description = 'Иконка'
 

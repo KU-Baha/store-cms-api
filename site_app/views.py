@@ -7,7 +7,8 @@ from .models import (
     SliderImage,
     SiteSocial,
     CallBack,
-    AboutUsImage
+    AboutUsImage,
+    OurAdvantages
 )
 
 from .serializers import (
@@ -188,23 +189,4 @@ class OurAdvantageViewSet(viewsets.ModelViewSet):
     Наши преймущества
     """
     serializer_class = OurAdvantageSerializer
-    queryset = Site.objects.first()
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.queryset
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.queryset
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        if getattr(instance, '_prefetched_objects_cache', None):
-            # Если 'prefetch_related' был применен к набору запросов, нам нужно
-            # принудительно аннулировать кеш предварительной выборки экземпляра.
-            instance._prefetched_objects_cache = {}
-
-        return Response(serializer.data)
+    queryset = OurAdvantages.objects.all()

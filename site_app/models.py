@@ -22,10 +22,6 @@ class Site(models.Model):
     # Публичная оффера
     public_offer_title = models.CharField('Заголовок для "Публичная оффера"', max_length=50, default='Публичная оффера')
     public_offer_text = models.TextField('Текст для "Публичная оффера"')
-    # Наши преимущества
-    our_advantages_title = models.CharField('Заголовок для "Наши преимущества"', max_length=50, default='Наши преимущества')
-    our_advantages_icon = CloudinaryField('Иконка для "Наши преимущества"')
-    our_advantages_text = models.TextField('Текст для "Наши преимущества"')
     # Помощь
     help_image = CloudinaryField('Изображение на странице "Помощь"')
 
@@ -174,3 +170,11 @@ class AboutUsImage(models.Model):
         verbose_name_plural = 'Изображения странички О нас'
 
 
+class OurAdvantages(models.Model):
+    title = models.CharField('Заголовок', max_length=50, default='Наши преимущества')
+    icon = CloudinaryField('Иконка')
+    text = models.TextField('Текст')
+
+    class Meta:
+        verbose_name = 'Наши преимущества'
+        verbose_name_plural = 'Наши преимущества'

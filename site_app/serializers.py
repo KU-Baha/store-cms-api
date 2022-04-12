@@ -112,8 +112,8 @@ class OurAdvantageSerializer(serializers.ModelSerializer):
     """
     Наши преймущества
     """
-    our_advantages_icon = serializers.ImageField(required=False)
+    icon = serializers.ImageField(required=False)
 
     class Meta:
         model = Site
-        fields = ('our_advantages_title', 'our_advantages_icon', 'our_advantages_text')
+        fields = ('title', 'icon', 'text')
