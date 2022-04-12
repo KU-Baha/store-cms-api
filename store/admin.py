@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 from django.utils.safestring import mark_safe
 from django import forms
 from ckeditor.widgets import CKEditorWidget
@@ -9,7 +11,8 @@ from .models import (
     Order,
     OrderStatus,
     OrderItem,
-    ChildrenProduct
+    ChildrenProduct,
+    Customer
 )
 from cloudinary.forms import CloudinaryJsFileField
 
@@ -133,11 +136,11 @@ class OrderAdmin(admin.ModelAdmin):
         return OrderItem.objects.filter(order=obj)
 
     def get_products_numbers_in_ruler(self, obj):
-        numbers_in_ruler = sum([i.children_product.product.number_in_ruler for i in self.get_products(obj)])
+        numbers_in_ruler = len([i for i in self.get_products(obj)])
         return numbers_in_ruler
 
     def get_products_count(self, obj):
-        products_count = sum([i.children_product.amount for i in self.get_products(obj)])
+        products_count = sum([i.children_product.product.number_in_ruler * i.quantity for i in self.get_products(obj)])
         return products_count
 
     def get_products_sum(self, obj):
@@ -165,35 +168,41 @@ class OrderStatusAdmin(admin.ModelAdmin):
     ordering = ('id',)
 
 
-@admin.register(OrderItem)
-class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ('id', 'order', 'children_product', 'get_product_price', 'quantity', 'total_price',
-                    'get_product_color', 'get_product_size', 'get_product_old_price', 'get_product_image')
-    list_display_links = ('order', 'children_product')
-    list_filter = ('order',)
-    readonly_fields = ('total_price', 'get_product_price', 'get_product_color', 'get_product_size',
-                       'get_product_old_price', 'get_product_image')
-    search_fields = ('order__first_name', 'order__last_name', 'children_product__product__name')
-    fields = ('order', 'children_product', 'get_product_price', 'quantity', 'total_price', 'get_product_color',
-              'get_product_size', 'get_product_old_price', 'get_product_image')
+# @admin.register(OrderItem)
+# class OrderItemAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'order', 'children_product', 'get_product_price', 'quantity', 'total_price',
+#                     'get_product_color', 'get_product_size', 'get_product_old_price', 'get_product_image')
+#     list_display_links = ('order', 'children_product')
+#     list_filter = ('order',)
+#     readonly_fields = ('total_price', 'get_product_price', 'get_product_color', 'get_product_size',
+#                        'get_product_old_price', 'get_product_image')
+#     search_fields = ('order__first_name', 'order__last_name', 'children_product__product__name')
+#     fields = ('order', 'children_product', 'get_product_price', 'quantity', 'total_price', 'get_product_color',
+#               'get_product_size', 'get_product_old_price', 'get_product_image')
+#
+#     def get_product_price(self, obj):
+#         return obj.children_product.product.price
+#
+#     def get_product_color(self, obj):
+#         return mark_safe(f'<p style="color: {obj.children_product.color.rgb}">{obj.children_product.color.color}</p>')
+#
+#     def get_product_size(self, obj):
+#         return obj.children_product.product.size
+#
+#     def get_product_old_price(self, obj):
+#         return obj.children_product.product.old_price if obj.children_product.product.old_price else '-'
+#
+#     def get_product_image(self, obj):
+#         return mark_safe(f'<img src={obj.children_product.image.url} width="140" height="180">') if obj.children_product.image else '-'
+#
+#     get_product_price.short_description = 'Цена'
+#     get_product_color.short_description = 'Цвет'
+#     get_product_size.short_description = 'Размер'
+#     get_product_old_price.short_description = 'Старая цена'
+#     get_product_image.short_description = 'Изображение'
 
-    def get_product_price(self, obj):
-        return obj.children_product.product.price
 
-    def get_product_color(self, obj):
-        return mark_safe(f'<p style="color: {obj.children_product.color.rgb}">{obj.children_product.color.color}</p>')
-
-    def get_product_size(self, obj):
-        return obj.children_product.product.size
-
-    def get_product_old_price(self, obj):
-        return obj.children_product.product.old_price if obj.children_product.product.old_price else '-'
-
-    def get_product_image(self, obj):
-        return mark_safe(f'<img src={obj.children_product.image.url} width="140" height="180">') if obj.children_product.image else '-'
-
-    get_product_price.short_description = 'Цена'
-    get_product_color.short_description = 'Цвет'
-    get_product_size.short_description = 'Размер'
-    get_product_old_price.short_description = 'Старая цена'
-    get_product_image.short_description = 'Изображение'
+@admin.register(Customer)
+class CustomerAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'phone_number', 'country', 'city')
+    list_display_links = ('id', 'user', 'phone_number')

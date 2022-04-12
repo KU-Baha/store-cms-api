@@ -6,6 +6,24 @@ from django.core.files.images import get_image_dimensions
 from colorful.fields import RGBColorField
 from datetime import datetime, timezone
 from cloudinary.models import CloudinaryField
+from django.contrib.auth.models import User
+
+
+class Customer(models.Model):
+    """
+    Покупатель
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='customer')
+    phone_number = models.CharField('Телефонный номер', max_length=20)
+    country = models.CharField('Страна', max_length=50)
+    city = models.CharField('Город', max_length=50)
+
+    def __str__(self):
+        return self.user.username
+
+    class Meta:
+        verbose_name = 'Покупатель'
+        verbose_name_plural = 'Покупатели'
 
 
 class Product(models.Model):
