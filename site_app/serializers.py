@@ -4,12 +4,11 @@ from django.conf import settings
 from .models import (
     Site,
     SiteSocial,
-    Social,
     SliderImage,
     QuestionAnswer,
     CallBack,
-    AppealType,
-    AboutUsImage
+    AboutUsImage,
+    OurAdvantages
 )
 
 
@@ -115,5 +114,5 @@ class OurAdvantageSerializer(serializers.ModelSerializer):
     icon = serializers.ImageField(required=False)
 
     class Meta:
-        model = Site
+        model = OurAdvantages
         fields = ('title', 'icon', 'text')

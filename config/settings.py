@@ -192,6 +192,10 @@ CKEDITOR_CONFIGS = {
 
 # DRF config
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'DATETIME_INPUT_FORMATS': ['%Y-%m-%d %H:%M'],
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M',
@@ -204,3 +208,14 @@ cloudinary.config(
   api_key=os.getenv('api_key'),
   api_secret=os.getenv('api_secret')
 )
+
+FIRE_BASE_CONFIG = {
+  'apiKey': "AIzaSyD9dF3FZkq0CLZA3hz5JNDDh2wWQHJz7RE",
+  'authDomain': "store-cms-api-2db7a.firebaseapp.com",
+  'databaseURL': "https://store-cms-api-2db7a-default-rtdb.firebaseio.com",
+  'projectId': "store-cms-api-2db7a",
+  'storageBucket': "store-cms-api-2db7a.appspot.com",
+  'messagingSenderId': "313232607495",
+  'appId': "1:313232607495:web:605dbc21da9a745afc9da2",
+  'measurementId': "G-VHPR2E0ML5"
+}

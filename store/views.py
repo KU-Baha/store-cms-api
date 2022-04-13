@@ -1,4 +1,8 @@
+import json
+
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter
@@ -10,6 +14,10 @@ from .serializers import (
     CollectionSerializer,
     OrderSerializer,
     OrderItemSerializer,
+    CustomerSerializer,
+    UserSerializer,
+    CartSerializer,
+    CartItemSerializer
 )
 from .models import (
     Product,
@@ -17,7 +25,15 @@ from .models import (
     Collection,
     Order,
     OrderItem,
+    Customer,
+    Cart,
+    CartItem
 )
+
+import pyrebase
+
+firebase = pyrebase.initialize_app(settings.FIRE_BASE_CONFIG)
+auth = firebase.auth()
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -168,3 +184,63 @@ class OrderItemViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+
+class CustomerViewSet(viewsets.ViewSet):
+    """
+    Покупатель
+    """
+    def retrieve(self, request, *args, **kwargs):
+        instance = get_object_or_404(Customer, self.kwargs['pk'])
+        serializer = CustomerSerializer(instance)
+        user_instance = User.objects.get(id=instance.user.id)
+        user_serializer = UserSerializer(user_instance)
+        data = {}
+        data.update(serializer.data)
+        data.update(**user_serializer.data)
+        return Response(data)
+
+    # def signIn(self, request, *args, **kwargs):
+    #     email = request.POST.get('email')
+    #     password = request.POST.get('password')
+    #
+    #     user = auth.sign_in_with_email_and_password(email, password)
+    #     return
+
+
+class CartViewSet(viewsets.ViewSet):
+    """
+    Корзина
+    """
+    def retrieve(self, request, *args, **kwargs):
+        customer = Customer.objects.get(pk=self.kwargs['pk'])
+        cart = Cart.objects.get(customer=customer)
+        cart_items = CartItem.objects.filter(cart=cart)
+        serializer = CartItemSerializer(cart_items, many=True)
+        return Response(serializer.data)
+
+    def add_item(self, request, *args, **kwargs):
+        json_data = json.loads(request.body)
+        customer = Customer.objects.get(pk=self.kwargs['pk'])
+        cart = Cart.objects.get(customer=customer)
+        try:
+            CartItem.objects.create(cart=cart, children_product_id=json_data['children_product'], quantity=json_data['quantity'])
+        except Exception as e:
+            return Response(f'Ошибка: {e}', status=status.HTTP_400_BAD_REQUEST)
+        return Response('Добавлен', status=status.HTTP_201_CREATED)
+
+    def update_item(self, request, *args, **kwargs):
+        json_data = json.loads(request.body)
+        customer = Customer.objects.get(pk=self.kwargs['pk'])
+        cart = Cart.objects.get(customer=customer)
+        cart_item = CartItem.objects.get(cart=cart, children_product=json_data['children_product'])
+        cart_item.quantity = json_data['quantity']
+        cart_item.save()
+        return Response('Обновлен', status=status.HTTP_200_OK)
+
+    def delete_item(self, request, *args, **kwargs):
+        json_data = json.loads(request.body)
+        customer = Customer.objects.get(pk=self.kwargs['pk'])
+        cart = Cart.objects.get(customer=customer)
+        cart_item = CartItem.objects.get(cart=cart, children_product=json_data['children_product'])
+        cart_item.delete()
+        return Response('Удален', status=status.HTTP_200_OK)

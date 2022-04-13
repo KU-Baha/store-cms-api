@@ -1,6 +1,4 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
 from django.utils.safestring import mark_safe
 from django import forms
 from ckeditor.widgets import CKEditorWidget
@@ -12,7 +10,9 @@ from .models import (
     OrderStatus,
     OrderItem,
     ChildrenProduct,
-    Customer
+    Customer,
+    Cart,
+    CartItem
 )
 from cloudinary.forms import CloudinaryJsFileField
 
@@ -202,7 +202,21 @@ class OrderStatusAdmin(admin.ModelAdmin):
 #     get_product_image.short_description = 'Изображение'
 
 
+class CustomerForm(forms.ModelForm):
+    favorites = forms.ModelMultipleChoiceField(Product.objects.filter(deleted=False),
+                                               label=Customer._meta.get_field('favorites').verbose_name)
+
+    class Meta:
+        model = Customer
+        fields = '__all__'
+
+
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'phone_number', 'country', 'city')
     list_display_links = ('id', 'user', 'phone_number')
+    form = CustomerForm
+
+
+admin.site.register(CartItem)
+admin.site.register(Cart)

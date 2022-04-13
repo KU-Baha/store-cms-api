@@ -17,6 +17,12 @@ class Customer(models.Model):
     phone_number = models.CharField('Телефонный номер', max_length=20)
     country = models.CharField('Страна', max_length=50)
     city = models.CharField('Город', max_length=50)
+    favorites = models.ManyToManyField('Product', verbose_name='Избранные', null=True, blank=True, related_name='customer', related_query_name='customers')
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        cart = Cart(customer=self)
+        cart.save()
 
     def __str__(self):
         return self.user.username
@@ -57,6 +63,8 @@ class Product(models.Model):
         # Проверка на удаление
         if self.deleted:
             self.end_date = datetime.now(tz=timezone.utc)
+            for i in Customer.objects.filter(favorites=self):
+                i.favorites.remove(self)
         else:
             self.end_date = None
         # Подсчет скидки
@@ -276,3 +284,43 @@ class OrderItem(models.Model):
     class Meta:
         verbose_name = 'Продукт заказа'
         verbose_name_plural = 'Продукты заказов'
+
+
+class Cart(models.Model):
+    """
+    Корзина
+    """
+    customer = models.OneToOneField(Customer, on_delete=models.CASCADE, verbose_name='Пользователь', related_name='cart')
+
+    def __str__(self):
+        return f'Корзина пользователя - {self.customer}'
+
+    class Meta:
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзины'
+
+
+class CartItem(models.Model):
+    """
+    Продукты в корзине
+    """
+    cart = models.ForeignKey(Cart, related_name='cart_items', on_delete=models.CASCADE, verbose_name='Корзина')
+    children_product = models.ForeignKey(ChildrenProduct, related_name='cart_items', on_delete=models.DO_NOTHING,
+                                         verbose_name='Продукт')
+    quantity = models.PositiveIntegerField('Количество', default=1, validators=[MinValueValidator(1)])
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            cart_item = CartItem.objects.filter(cart=self.cart, children_product=self.children_product)
+            if len(cart_item) == 0:
+                super().save(*args, **kwargs)
+            else:
+                raise Exception('В корзине уже существует такой продукт!')
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.cart} - {self.children_product}'
+
+    class Meta:
+        verbose_name = 'Продукт корзины'
+        verbose_name_plural = 'Продукты корзин'

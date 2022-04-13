@@ -1,5 +1,15 @@
 from rest_framework import serializers
-from .models import Product, ChildrenProduct, Collection, Color, Order, OrderStatus, OrderItem
+from django.contrib.auth.models import User
+from .models import (
+    Product,
+    ChildrenProduct,
+    Collection,
+    Order,
+    OrderItem,
+    Customer,
+    Cart,
+    CartItem
+)
 from django.core.files.images import get_image_dimensions
 
 
@@ -149,3 +159,38 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ('id', 'first_name', 'last_name', 'mail', 'phone_number', 'country', 'city', 'issue_date', 'status',
                   'start_date', 'update_date', 'items')
 
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    Пользователь django
+    """
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email')
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    """
+    Покупатель
+    """
+    class Meta:
+        model = Customer
+        fields = ('id', 'phone_number', 'country', 'city', 'favorites')
+
+
+class CartSerializer(serializers.ModelSerializer):
+    """
+    Корзина
+    """
+    class Meta:
+        model = Cart
+        fields = '__all__'
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    """
+    Продукты корзины
+    """
+    class Meta:
+        model = CartItem
+        fields = ('children_product', 'quantity')

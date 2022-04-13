@@ -4,8 +4,11 @@ from .views import (
     ChildrenProductViewSet,
     CollectionViewSet,
     OrderViewSet,
-    OrderItemViewSet
+    OrderItemViewSet,
+    CustomerViewSet,
+    CartViewSet
 )
+
 urlpatterns = [
     path('products/', ProductViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('product/<int:pk>/', ProductViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update',
@@ -25,5 +28,7 @@ urlpatterns = [
     path('order/<int:pk>/', OrderViewSet.as_view({'get': 'retrieve'})),
     path('order/<int:pk>/items/', OrderItemViewSet.as_view({'get': 'list'})),
     path('order/item/<int:pk>/', OrderItemViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})),
+    path('customer/<int:pk>/', CustomerViewSet.as_view({'get': 'retrieve'})),
+    path('cart/<int:pk>/', CartViewSet.as_view({'get': 'retrieve', 'post': 'add_item', 'put': 'update_item', 'delete': 'delete_item'}))
 ]
 
