@@ -34,5 +34,6 @@ urlpatterns = [
     path('about/image/<int:pk>/', AboutUsImageViewSet.as_view({'get': 'retrieve', 'put': 'update',
                                                                'patch': 'partial_update'})),
     path('our-advantage/', OurAdvantageViewSet.as_view({'get': 'list', 'post': 'create'})),
-    path('our-advantage/<int:pk>/', OurAdvantageViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update'}))
+    path('our-advantage/<int:pk>/',
+         OurAdvantageViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update'}))
 ]

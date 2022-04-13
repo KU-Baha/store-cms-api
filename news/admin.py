@@ -28,7 +28,7 @@ class PostAdmin(admin.ModelAdmin):
     list_editable = ('deleted',)
     list_filter = ('create_date', 'end_date', 'update_date', 'deleted')
     readonly_fields = ('create_date', 'end_date', 'update_date', 'get_image')
-    search_fields = ('title', )
+    search_fields = ('title',)
     form = PostForm
     fields = ('title', 'description', 'create_date', 'end_date', 'update_date', 'image', 'get_image', 'deleted')
 

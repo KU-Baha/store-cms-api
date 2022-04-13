@@ -17,7 +17,8 @@ class Customer(models.Model):
     phone_number = models.CharField('Телефонный номер', max_length=20)
     country = models.CharField('Страна', max_length=50)
     city = models.CharField('Город', max_length=50)
-    favorites = models.ManyToManyField('Product', verbose_name='Избранные', null=True, blank=True, related_name='customer', related_query_name='customers')
+    favorites = models.ManyToManyField('Product', verbose_name='Избранные', null=True, blank=True,
+                                       related_name='customer', related_query_name='customers')
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -97,8 +98,10 @@ class ChildrenProduct(models.Model):
     Связь с Product и Color
     Внешняя связь с OrderItem
     """
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Продукт', related_name='children_products')
-    color = models.ForeignKey('Color', on_delete=models.DO_NOTHING, verbose_name='Цвет', related_name='children_products')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Продукт',
+                                related_name='children_products')
+    color = models.ForeignKey('Color', on_delete=models.DO_NOTHING, verbose_name='Цвет',
+                              related_name='children_products')
     image = CloudinaryField('Изображение')
     amount = models.PositiveSmallIntegerField('Количество на складе', default=0)
     start_date = models.DateTimeField('Дата создания', auto_now=True)
@@ -122,7 +125,8 @@ class ChildrenProduct(models.Model):
                 if len(ChildrenProduct.objects.filter(product=self.product, deleted=False)) >= 8:
                     raise ValidationError('Количество цветов не должно превышать 8ми!')
             # Валидация на цвет
-            product_by_color = ChildrenProduct.objects.filter(product=self.product, color_id=self.color.pk, deleted=False)
+            product_by_color = ChildrenProduct.objects.filter(product=self.product, color_id=self.color.pk,
+                                                              deleted=False)
             if len(product_by_color) > 0 and product_by_color[0] != self:
                 raise ValidationError('Подпродукт с таким цветом уже есть!')
         except ChildrenProduct.DoesNotExist:
@@ -255,7 +259,8 @@ class OrderItem(models.Model):
     Связь с Order и ChildrenProduct
     """
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE, verbose_name='Заказ')
-    children_product = models.ForeignKey(ChildrenProduct, related_name='order_items', on_delete=models.DO_NOTHING, verbose_name='Продукт')
+    children_product = models.ForeignKey(ChildrenProduct, related_name='order_items', on_delete=models.DO_NOTHING,
+                                         verbose_name='Продукт')
     quantity = models.PositiveIntegerField('Количество', default=1, validators=[MinValueValidator(1)])
     total_price = models.PositiveIntegerField('Общая цена', null=True, blank=True)
 
@@ -290,7 +295,8 @@ class Cart(models.Model):
     """
     Корзина
     """
-    customer = models.OneToOneField(Customer, on_delete=models.CASCADE, verbose_name='Пользователь', related_name='cart')
+    customer = models.OneToOneField(Customer, on_delete=models.CASCADE, verbose_name='Пользователь',
+                                    related_name='cart')
 
     def __str__(self):
         return f'Корзина пользователя - {self.customer}'

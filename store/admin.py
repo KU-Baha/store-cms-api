@@ -90,7 +90,7 @@ class CollectionAdmin(admin.ModelAdmin):
     list_editable = ('deleted',)
     readonly_fields = ('get_image', 'start_date', 'end_date', 'update_date')
     fields = ('name', 'image', 'get_image', 'start_date', 'end_date', 'update_date', 'deleted')
-    search_fields = ('name', )
+    search_fields = ('name',)
 
     def get_image(self, obj):
         """
@@ -126,9 +126,10 @@ class OrderAdmin(admin.ModelAdmin):
     list_editable = ('deleted',)
     readonly_fields = ('get_products_numbers_in_ruler', 'get_products_count', 'get_products_sum',
                        'get_products_discount', 'get_total_price', 'start_date', 'end_date', 'update_date')
-    fields = ('first_name', 'last_name', 'mail', 'phone_number', 'country', 'city', 'status', 'get_products_numbers_in_ruler',
-              'get_products_count', 'get_products_sum', 'get_products_discount', 'get_total_price',
-              'start_date', 'end_date', 'update_date', 'deleted')
+    fields = (
+        'first_name', 'last_name', 'mail', 'phone_number', 'country', 'city', 'status', 'get_products_numbers_in_ruler',
+        'get_products_count', 'get_products_sum', 'get_products_discount', 'get_total_price',
+        'start_date', 'end_date', 'update_date', 'deleted')
     search_fields = ('first_name', 'last_name', 'country', 'city')
     inlines = (OrderItemInline,)
 
@@ -148,7 +149,9 @@ class OrderAdmin(admin.ModelAdmin):
         return products_price
 
     def get_products_discount(self, obj):
-        products_price = sum([i.children_product.product.old_price - i.children_product.product.price if i.children_product.product.old_price else 0 for i in self.get_products(obj)])
+        products_price = sum([
+            i.children_product.product.old_price - i.children_product.product.price if i.children_product.product.old_price else 0
+            for i in self.get_products(obj)])
         return products_price
 
     def get_total_price(self, obj):

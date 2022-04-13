@@ -23,7 +23,8 @@ class SiteForm(forms.ModelForm):
     """
     about_us_text = forms.CharField(widget=CKEditorWidget(), label=Site._meta.get_field('about_us_text').verbose_name)
     footer_text = forms.CharField(widget=CKEditorWidget(), label=Site._meta.get_field('footer_text').verbose_name)
-    public_offer_text = forms.CharField(widget=CKEditorWidget(), label=Site._meta.get_field('public_offer_text').verbose_name)
+    public_offer_text = forms.CharField(widget=CKEditorWidget(),
+                                        label=Site._meta.get_field('public_offer_text').verbose_name)
 
     class Meta:
         model = Site
@@ -76,8 +77,8 @@ class SliderImageAdmin(admin.ModelAdmin):
     """
     list_display = ('id', 'get_image')
     list_display_links = ('id', 'get_image')
-    readonly_fields = ('get_image', )
-    ordering = ('id', )
+    readonly_fields = ('get_image',)
+    ordering = ('id',)
 
     def get_image(self, obj):
         if obj.image:
@@ -106,8 +107,8 @@ class AboutUsImageAdmin(admin.ModelAdmin):
     """
     list_display = ('get_image',)
     list_display_links = ('get_image',)
-    readonly_fields = ('get_image', )
-    ordering = ('id', )
+    readonly_fields = ('get_image',)
+    ordering = ('id',)
 
     def get_image(self, obj):
         return mark_safe(f'<img src={obj.image.url} width="50" height="60">') if obj.image else '-'
@@ -121,7 +122,7 @@ class QuestionAnswerAdmin(admin.ModelAdmin):
     Админ панель "Вопросы и ответы"
     """
     list_display = ('question', 'answer')
-    list_display_links = ('question', )
+    list_display_links = ('question',)
 
 
 @admin.register(AppealType)
@@ -129,9 +130,9 @@ class AppealTypeAdmin(admin.ModelAdmin):
     """
     Админ панель "Тип обращения"
     """
-    list_display = ('name', )
-    list_display_links = ('name', )
-    ordering = ('id', )
+    list_display = ('name',)
+    list_display_links = ('name',)
+    ordering = ('id',)
 
 
 class OurAdvantagesForm(forms.ModelForm):
@@ -159,4 +160,3 @@ class OurAdvantagesAdmin(admin.ModelAdmin):
         return mark_safe(f'<img src={obj.icon.url} width=50 height=50>') if obj.icon else '-'
 
     get_icon.short_description = 'Иконка'
-

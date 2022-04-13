@@ -1,6 +1,4 @@
 from rest_framework import serializers
-from django.conf import settings
-
 from .models import (
     Site,
     SiteSocial,
@@ -16,6 +14,7 @@ class QuestionAnswerSerializer(serializers.ModelSerializer):
     """
     Вопросы и ответы
     """
+
     class Meta:
         model = QuestionAnswer
         fields = ('question', 'answer')
@@ -73,13 +72,14 @@ class AboutUsImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AboutUsImage
-        fields = ('image', )
+        fields = ('image',)
 
 
 class AboutUsSerializer(serializers.ModelSerializer):
     """
     О Нас
     """
+
     class Meta:
         model = Site
         fields = ('about_us_title', 'about_us_text')

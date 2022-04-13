@@ -19,10 +19,8 @@ import cloudinary.api
 
 load_dotenv()
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -87,7 +85,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -97,7 +94,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -117,7 +113,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -129,7 +124,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
@@ -140,7 +134,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
-
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
@@ -175,7 +168,8 @@ CKEDITOR_CONFIGS = {
         "removePlugins": "stylesheetparser",
         'allowedContent': True,
         'toolbar_Full': [
-            ['Styles', 'Format', 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat'],
+            ['Styles', 'Format', 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-',
+             'RemoveFormat'],
             ['Image', 'Flash', 'Table', 'HorizontalRule'],
             ['TextColor', 'BGColor'],
             ['Smiley', 'sourcearea', 'SpecialChar'],
@@ -204,18 +198,18 @@ REST_FRAMEWORK = {
 
 # adding config
 cloudinary.config(
-  cloud_name=os.getenv('cloud_name'),
-  api_key=os.getenv('api_key'),
-  api_secret=os.getenv('api_secret')
+    cloud_name=os.getenv('cloud_name'),
+    api_key=os.getenv('api_key'),
+    api_secret=os.getenv('api_secret')
 )
 
 FIRE_BASE_CONFIG = {
-  'apiKey': "AIzaSyD9dF3FZkq0CLZA3hz5JNDDh2wWQHJz7RE",
-  'authDomain': "store-cms-api-2db7a.firebaseapp.com",
-  'databaseURL': "https://store-cms-api-2db7a-default-rtdb.firebaseio.com",
-  'projectId': "store-cms-api-2db7a",
-  'storageBucket': "store-cms-api-2db7a.appspot.com",
-  'messagingSenderId': "313232607495",
-  'appId': "1:313232607495:web:605dbc21da9a745afc9da2",
-  'measurementId': "G-VHPR2E0ML5"
+    'apiKey': "AIzaSyD9dF3FZkq0CLZA3hz5JNDDh2wWQHJz7RE",
+    'authDomain': "store-cms-api-2db7a.firebaseapp.com",
+    'databaseURL': "https://store-cms-api-2db7a-default-rtdb.firebaseio.com",
+    'projectId': "store-cms-api-2db7a",
+    'storageBucket': "store-cms-api-2db7a.appspot.com",
+    'messagingSenderId': "313232607495",
+    'appId': "1:313232607495:web:605dbc21da9a745afc9da2",
+    'measurementId': "G-VHPR2E0ML5"
 }

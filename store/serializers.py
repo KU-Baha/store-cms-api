@@ -69,7 +69,7 @@ class ChildrenProductSerializer(serializers.ModelSerializer):
                 # Валидация на максимум
                 if len(ChildrenProduct.objects.filter(product=product, deleted=False)) >= 8:
                     raise serializers.ValidationError('Количество цветов не должно превышать 8ми!')
-            #Валидация на цвет
+            # Валидация на цвет
             product_by_color = ChildrenProduct.objects.filter(product=product, color=color, deleted=False)
             if len(product_by_color) > 0 and product_by_color[0] != self.instance:
                 raise serializers.ValidationError('Подпродукт с таким цветом уже есть!')
@@ -164,6 +164,7 @@ class UserSerializer(serializers.ModelSerializer):
     """
     Пользователь django
     """
+
     class Meta:
         model = User
         fields = ('username', 'first_name', 'last_name', 'email')
@@ -173,6 +174,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     """
     Покупатель
     """
+
     class Meta:
         model = Customer
         fields = ('id', 'phone_number', 'country', 'city', 'favorites')
@@ -182,6 +184,7 @@ class CartSerializer(serializers.ModelSerializer):
     """
     Корзина
     """
+
     class Meta:
         model = Cart
         fields = '__all__'
@@ -191,6 +194,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     """
     Продукты корзины
     """
+
     class Meta:
         model = CartItem
         fields = ('children_product', 'quantity')

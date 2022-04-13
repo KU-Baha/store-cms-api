@@ -19,7 +19,8 @@ urlpatterns = [
 
     path('children-products/', ChildrenProductViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('children-product/<int:pk>/', ChildrenProductViewSet.as_view({'get': 'retrieve', 'put': 'update',
-                                                                       'delete': 'destroy', 'patch': 'partial_update'})),
+                                                                       'delete': 'destroy',
+                                                                       'patch': 'partial_update'})),
     path('collections/', CollectionViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('collection/<int:pk>/', CollectionViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy',
                                                             'patch': 'partial_update'})),
@@ -29,6 +30,6 @@ urlpatterns = [
     path('order/<int:pk>/items/', OrderItemViewSet.as_view({'get': 'list'})),
     path('order/item/<int:pk>/', OrderItemViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})),
     path('customer/<int:pk>/', CustomerViewSet.as_view({'get': 'retrieve'})),
-    path('cart/<int:pk>/', CartViewSet.as_view({'get': 'retrieve', 'post': 'add_item', 'put': 'update_item', 'delete': 'delete_item'}))
+    path('cart/<int:pk>/',
+         CartViewSet.as_view({'get': 'retrieve', 'post': 'add_item', 'put': 'update_item', 'delete': 'delete_item'}))
 ]
-

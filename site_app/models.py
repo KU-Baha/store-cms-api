@@ -93,8 +93,9 @@ class SliderImage(models.Model):
     """
     Изображения слайдера
     """
-    image = CloudinaryField('Изображение', help_text='Можно вместо загрузки изображние, поставить ссылку', null=True, blank=True)
-    link = models.CharField('Ссылка на изображение', max_length=500,  null=True, blank=True,
+    image = CloudinaryField('Изображение', help_text='Можно вместо загрузки изображние, поставить ссылку', null=True,
+                            blank=True)
+    link = models.CharField('Ссылка на изображение', max_length=500, null=True, blank=True,
                             help_text='Ссылка на изображение не должно превышать 500 символов')
 
     def __str__(self):

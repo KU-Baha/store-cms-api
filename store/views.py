@@ -48,7 +48,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     queryset = Product.objects.filter(deleted=False)
     filter_backends = (DjangoFilterBackend, SearchFilter)
-    search_fields = ('name', )
+    search_fields = ('name',)
 
     def similar(self, request, pk=None, qt=None):
         """
@@ -189,6 +189,7 @@ class CustomerViewSet(viewsets.ViewSet):
     """
     Покупатель
     """
+
     def retrieve(self, request, *args, **kwargs):
         instance = get_object_or_404(Customer, self.kwargs['pk'])
         serializer = CustomerSerializer(instance)
@@ -211,6 +212,7 @@ class CartViewSet(viewsets.ViewSet):
     """
     Корзина
     """
+
     def retrieve(self, request, *args, **kwargs):
         customer = Customer.objects.get(pk=self.kwargs['pk'])
         cart = Cart.objects.get(customer=customer)
@@ -223,7 +225,8 @@ class CartViewSet(viewsets.ViewSet):
         customer = Customer.objects.get(pk=self.kwargs['pk'])
         cart = Cart.objects.get(customer=customer)
         try:
-            CartItem.objects.create(cart=cart, children_product_id=json_data['children_product'], quantity=json_data['quantity'])
+            CartItem.objects.create(cart=cart, children_product_id=json_data['children_product'],
+                                    quantity=json_data['quantity'])
         except Exception as e:
             return Response(f'Ошибка: {e}', status=status.HTTP_400_BAD_REQUEST)
         return Response('Добавлен', status=status.HTTP_201_CREATED)
