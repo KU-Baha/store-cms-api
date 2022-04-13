@@ -30,10 +30,11 @@ from .models import (
     CartItem
 )
 
-import pyrebase
 
-firebase = pyrebase.initialize_app(settings.FIRE_BASE_CONFIG)
-auth = firebase.auth()
+# import pyrebase
+#
+# firebase = pyrebase.initialize_app(settings.FIRE_BASE_CONFIG)
+# auth = firebase.auth()
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -128,7 +129,14 @@ class OrderViewSet(viewsets.ModelViewSet):
     Заказ
     Реализованы все базовые методы ModelViewSet, переделан create
             Пример API для создания
+        is_auntification == True:
         {
+        "is_auntification": "True",
+        "customer": customer_id
+        }
+        is_auntification == False:
+        {
+        "is_auntification": "False",
         "user_data": {
             "first_name": "Name",
             "last_name": "Surname",
@@ -139,12 +147,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         },
         "products": [
                 {
-                "id": 1,
-                "quantity": 2
-                },
-                {
-                "id": 2,
-                "quantity": 1
+                "id": children_product_id,
+                "quantity": product_quantity
                 }
                 ]
         }
@@ -153,14 +157,29 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.filter(deleted=False)
 
     def create(self, request, *args, **kwargs):
-        try:
-            order = Order.objects.create(**request.data['user_data'])
-            for data in request.data['products']:
-                if ChildrenProduct.objects.get(id=data['id']).amount < data['quantity']:
+        json_data = request.data
+        if json_data['is_auntification']:
+            customer = Customer.objects.get(pk=json_data['customer'])
+            order = Order.objects.create(first_name=customer.user.first_name, last_name=customer.user.last_name,
+                                         mail=customer.user.email, phone_number=customer.phone_number,
+                                         country=customer.country, city=customer.city)
+            cart = Cart.objects.get(customer=customer)
+            cart_items = CartItem.objects.filter(cart=cart)
+            for cart_item in cart_items:
+                if ChildrenProduct.objects.get(id=cart_item.children_product.id).amount < cart_item.quantity:
                     raise Exception('На складе меньше товаров, чем вы запросили!')
-                OrderItem.objects.create(children_product_id=data['id'], quantity=data['quantity'], order=order)
-        except Exception as e:
-            return Response(f'Ошибка при обработке заказа! Ошибка {e}', status=status.HTTP_400_BAD_REQUEST)
+                OrderItem.objects.create(children_product_id=cart_item.children_product.id, quantity=cart_item.quantity,
+                                         order=order)
+                cart_item.delete()
+        else:
+            try:
+                order = Order.objects.create(**json_data['user_data'])
+                for data in json_data['products']:
+                    if ChildrenProduct.objects.get(id=data['id']).amount < data['quantity']:
+                        raise Exception('На складе меньше товаров, чем вы запросили!')
+                    OrderItem.objects.create(children_product_id=data['id'], quantity=data['quantity'], order=order)
+            except Exception as e:
+                return Response(f'Ошибка при обработке заказа! Ошибка {e}', status=status.HTTP_400_BAD_REQUEST)
         return Response(f'Заказ в обработке ожидайте обратного звонка! Номер заказа №{order.pk}',
                         status=status.HTTP_200_OK)
 
