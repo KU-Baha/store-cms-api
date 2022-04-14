@@ -2,7 +2,6 @@ import json
 
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
-from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter
@@ -81,7 +80,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def novelties(self, request, qt=None):
         """
-        Получение товаров сос статусом "Новинки"
+        Получение товаров со статусом "Новинки"
         """
         queryset = self.filter_queryset(Product.objects.filter(deleted=False, novelty=True)[0:qt])
         page = self.paginate_queryset(queryset)
@@ -208,10 +207,11 @@ class CustomerViewSet(viewsets.ViewSet):
     """
     Покупатель
     """
+    serializer = CustomerSerializer
 
     def retrieve(self, request, *args, **kwargs):
         instance = get_object_or_404(Customer, self.kwargs['pk'])
-        serializer = CustomerSerializer(instance)
+        serializer = self.serializer(instance)
         user_instance = User.objects.get(id=instance.user.id)
         user_serializer = UserSerializer(user_instance)
         data = {}
@@ -219,12 +219,20 @@ class CustomerViewSet(viewsets.ViewSet):
         data.update(**user_serializer.data)
         return Response(data)
 
-    # def signIn(self, request, *args, **kwargs):
-    #     email = request.POST.get('email')
-    #     password = request.POST.get('password')
-    #
-    #     user = auth.sign_in_with_email_and_password(email, password)
-    #     return
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = get_object_or_404(Customer, self.kwargs['pk'])
+        serializer = self.serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
 
 
 class CartViewSet(viewsets.ViewSet):
