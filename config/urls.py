@@ -17,19 +17,41 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
 from .yasg import urlpatterns as doc_urls
+from news.views import PostViewSet
+from store.views import (
+    ProductViewSet,
+    CustomerViewSet,
+    ChildrenProductViewSet,
+    CollectionViewSet,
+    OrderViewSet,
+    CartViewSet
+)
+
+router = DefaultRouter()
+router.register(r'news', PostViewSet, 'news')
+# router.register(r'product', ProductViewSet, 'product')
+# router.register(r'order', OrderViewSet, 'order')
+# router.register(r'custom', CustomerViewSet, 'custom')
+# router.register(r'children_product', ChildrenProductViewSet, 'children_product')
+# router.register(r'collection', CollectionViewSet, 'collection')
+# router.register(r'cart', CartViewSet, 'cart')
+# router.register('cart', CartViewSet, basename='cart')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
-    path('auth/', include('djoser.urls')),
-    path('auth/', include('djoser.urls.authtoken')),
-    path('auth/', include('djoser.urls.jwt')),
+    path('api/v1/auth/', include('djoser.urls')),
+    path('api/v1/auth/', include('djoser.urls.authtoken')),
+    path('api/v1/auth/', include('djoser.urls.jwt')),
     path('api/v1/store/', include('store.urls')),
-    path('api/v1/news/', include('news.urls')),
+    # path('api/v1/news/', include('news.urls')),
     path('api/v1/site/', include('site_app.urls'))
 ]
 
+urlpatterns += router.urls
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += doc_urls

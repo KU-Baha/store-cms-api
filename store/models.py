@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.conf import settings
 from django.db import models
@@ -6,17 +7,16 @@ from django.core.files.images import get_image_dimensions
 from colorful.fields import RGBColorField
 from datetime import datetime, timezone
 from cloudinary.models import CloudinaryField
-from django.contrib.auth.models import User
 
 
 class Customer(models.Model):
     """
     Покупатель
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='customer')
-    phone_number = models.CharField('Телефонный номер', max_length=20)
-    country = models.CharField('Страна', max_length=50)
-    city = models.CharField('Город', max_length=50)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    phone_number = models.CharField('Телефонный номер', max_length=20, null=True, blank=True)
+    country = models.CharField('Страна', max_length=50, null=True, blank=True)
+    city = models.CharField('Город', max_length=50, null=True, blank=True)
     favorites = models.ManyToManyField('Product', verbose_name='Избранные', null=True, blank=True,
                                        related_name='customer', related_query_name='customers')
 
@@ -278,8 +278,8 @@ class OrderItem(models.Model):
         super(OrderItem, self).delete()
 
     def clean(self):
-        if not self._state.adding:
-            raise ValidationError('Обновление запрещено!')
+        # if not self._state.adding:
+            # raise ValidationError('Обновление запрещено!')
         if self.children_product.amount < self.quantity:
             raise ValidationError('На складе меньше товаров, чем вы запросили!')
 

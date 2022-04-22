@@ -12,6 +12,7 @@ from .views import (
     OurAdvantageViewSet
 )
 
+
 urlpatterns = [
     path('questions-answers/', QuestionAnswerViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('question-answer/<int:pk>/', QuestionAnswerViewSet.as_view({'get': 'retrieve', 'put': 'update',

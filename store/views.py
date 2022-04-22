@@ -1,8 +1,9 @@
 import json
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -15,7 +16,6 @@ from .serializers import (
     OrderItemSerializer,
     CustomerSerializer,
     UserSerializer,
-    CartSerializer,
     CartItemSerializer
 )
 from .models import (
@@ -29,11 +29,7 @@ from .models import (
     CartItem
 )
 
-
-# import pyrebase
-#
-# firebase = pyrebase.initialize_app(settings.FIRE_BASE_CONFIG)
-# auth = firebase.auth()
+User = get_user_model()
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -50,11 +46,12 @@ class ProductViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ('name',)
 
+    @action(methods=['get'], detail=False, url_path='similar-products/(?P<id>\d+)/(?P<qt>\d+)')
     def similar(self, request, pk=None, qt=None):
         """
         Получение похожих товаров
         """
-        queryset = Product.objects.filter(collection_id=pk, deleted=False)[0:qt]
+        queryset = Product.objects.filter(collection_id=pk, deleted=False)[0:int(qt)]
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
 
@@ -64,11 +61,12 @@ class ProductViewSet(viewsets.ModelViewSet):
         queryset.save()
         return Response('Успешно удален!', status=status.HTTP_200_OK)
 
+    @action(methods=['get'], detail=False, url_path='bestsellers/(?P<qt>\d+)')
     def bestsellers(self, request, qt=None):
         """
         Получение товаров со статусом "Хит продаж"
         """
-        queryset = self.filter_queryset(Product.objects.filter(deleted=False, bestseller=True)[0:qt])
+        queryset = self.filter_queryset(Product.objects.filter(deleted=False, bestseller=True)[0:int(qt)])
         page = self.paginate_queryset(queryset)
 
         if page is not None:
@@ -78,11 +76,12 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(methods=['get'], detail=False, url_path='novelties/(?P<qt>\d+$)')
     def novelties(self, request, qt=None):
         """
         Получение товаров со статусом "Новинки"
         """
-        queryset = self.filter_queryset(Product.objects.filter(deleted=False, novelty=True)[0:qt])
+        queryset = self.filter_queryset(Product.objects.filter(deleted=False, novelty=True)[0:int(qt)])
         page = self.paginate_queryset(queryset)
 
         if page is not None:
@@ -90,6 +89,25 @@ class ProductViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(methods=['get'], detail=False, url_path='search_random')
+    def search_random(self, request):
+        obj = []
+        count = Collection.objects.all().count()
+        if count >= 5:
+            for i in Collection.objects.all().values_list('id')[0:5]:
+                if Product.objects.order_by('?').filter(collection=i).first():
+                    obj.append(Product.objects.order_by('?').filter(collection=i).first())
+                else:
+                    pass
+        else:
+            for i in Collection.objects.all().values_list('id')[0:count]:
+                if Product.objects.order_by('?').filter(collection=i).first():
+                    obj.append(Product.objects.order_by('?').filter(collection=i).first())
+                else:
+                    pass
+        serializer = ProductSerializer(obj, many=True)
         return Response(serializer.data)
 
 
@@ -117,13 +135,15 @@ class CollectionViewSet(viewsets.ModelViewSet):
     queryset = Collection.objects.filter(deleted=False)
 
     def destroy(self, request, pk=None):
+        self.paginate_queryset()
         queryset = get_object_or_404(Collection, pk=pk)
         queryset.deleted = True
         queryset.save()
+        self.filter_queryset()
         return Response('Успешно удален!', status=status.HTTP_200_OK)
 
 
-class OrderViewSet(viewsets.ModelViewSet):
+class OrderViewSet(viewsets.ViewSet):
     """
     Заказ
     Реализованы все базовые методы ModelViewSet, переделан create
@@ -152,8 +172,6 @@ class OrderViewSet(viewsets.ModelViewSet):
                 ]
         }
     """
-    serializer_class = OrderSerializer
-    queryset = Order.objects.filter(deleted=False)
 
     def create(self, request, *args, **kwargs):
         json_data = request.data
@@ -182,24 +200,18 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Response(f'Заказ в обработке ожидайте обратного звонка! Номер заказа №{order.pk}',
                         status=status.HTTP_200_OK)
 
+    def retrieve(self, request, pk):
+        instance = Order.objects.get(pk=pk)
+        serializer = OrderSerializer(instance)
+        return Response(serializer.data)
 
-class OrderItemViewSet(viewsets.ModelViewSet):
-    """
-    Продукты заказа
-    Реализованы все базовые методы ModelViewSet, переделан list
-    """
     serializer_class = OrderItemSerializer
     queryset = OrderItem.objects.all()
 
-    def list(self, request, pk=None, *args, **kwargs):
-        queryset = self.filter_queryset(OrderItem.objects.filter(order_id=pk))
-        page = self.paginate_queryset(queryset)
-
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
+    @action(methods=['get'], detail=True, url_path='items')
+    def items(self, request, pk=None, *args, **kwargs):
+        queryset = OrderItem.objects.filter(order_id=pk)
+        serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
 
 
@@ -209,8 +221,8 @@ class CustomerViewSet(viewsets.ViewSet):
     """
     serializer = CustomerSerializer
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = get_object_or_404(Customer, self.kwargs['pk'])
+    def retrieve(self, request, pk, *args, **kwargs):
+        instance = Customer.objects.get(pk=pk)
         serializer = self.serializer(instance)
         user_instance = User.objects.get(id=instance.user.id)
         user_serializer = UserSerializer(user_instance)
@@ -247,17 +259,20 @@ class CartViewSet(viewsets.ViewSet):
         serializer = CartItemSerializer(cart_items, many=True)
         return Response(serializer.data)
 
+    @action(methods=["post"], detail=True)
     def add_item(self, request, *args, **kwargs):
         json_data = json.loads(request.body)
         customer = Customer.objects.get(pk=self.kwargs['pk'])
         cart = Cart.objects.get(customer=customer)
         try:
-            CartItem.objects.create(cart=cart, children_product_id=json_data['children_product'],
-                                    quantity=json_data['quantity'])
+            cart_item = CartItem(cart=cart, children_product_id=json_data['children_product'],
+                                 quantity=json_data['quantity'])
+            cart_item.save()
         except Exception as e:
             return Response(f'Ошибка: {e}', status=status.HTTP_400_BAD_REQUEST)
-        return Response('Добавлен', status=status.HTTP_201_CREATED)
+        return Response('Продукт добавлен в корзину!', status=status.HTTP_201_CREATED)
 
+    @action(methods=["put"], detail=True)
     def update_item(self, request, *args, **kwargs):
         json_data = json.loads(request.body)
         customer = Customer.objects.get(pk=self.kwargs['pk'])
@@ -265,12 +280,12 @@ class CartViewSet(viewsets.ViewSet):
         cart_item = CartItem.objects.get(cart=cart, children_product=json_data['children_product'])
         cart_item.quantity = json_data['quantity']
         cart_item.save()
-        return Response('Обновлен', status=status.HTTP_200_OK)
+        return Response('Продукт в корзине обновлен!', status=status.HTTP_200_OK)
 
-    def delete_item(self, request, *args, **kwargs):
-        json_data = json.loads(request.body)
+    @action(methods=["delete"], detail=True, url_path='item/(?P<children_product_id>\d+)')
+    def delete_item(self, request, children_product_id, *args, **kwargs):
         customer = Customer.objects.get(pk=self.kwargs['pk'])
         cart = Cart.objects.get(customer=customer)
-        cart_item = CartItem.objects.get(cart=cart, children_product=json_data['children_product'])
+        cart_item = CartItem.objects.get(cart=cart, children_product=children_product_id)
         cart_item.delete()
-        return Response('Удален', status=status.HTTP_200_OK)
+        return Response('Продукт удален из корзины', status=status.HTTP_200_OK)

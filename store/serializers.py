@@ -1,5 +1,5 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from django.contrib.auth.models import User
 from .models import (
     Product,
     ChildrenProduct,
@@ -11,6 +11,8 @@ from .models import (
     CartItem
 )
 from django.core.files.images import get_image_dimensions
+
+User = get_user_model()
 
 
 class CollectionSerializer(serializers.ModelSerializer):

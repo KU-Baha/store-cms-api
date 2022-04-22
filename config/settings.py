@@ -13,8 +13,6 @@ from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 import os
-import cloudinary
-import cloudinary.uploader
 import cloudinary.api
 
 load_dotenv()
