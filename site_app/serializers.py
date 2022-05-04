@@ -17,7 +17,7 @@ class QuestionAnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = QuestionAnswer
-        fields = ('question', 'answer')
+        fields = ('id', 'question', 'answer')
 
 
 class HelpImageSerializer(serializers.ModelSerializer):
@@ -48,7 +48,7 @@ class SiteSocialSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SiteSocial
-        fields = ('social', 'name', 'link')
+        fields = ('id', 'social', 'name', 'link')
 
 
 class FooterSerializer(serializers.ModelSerializer):
@@ -72,7 +72,7 @@ class AboutUsImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AboutUsImage
-        fields = ('image',)
+        fields = ('id', 'image')
 
 
 class AboutUsSerializer(serializers.ModelSerializer):
@@ -93,7 +93,7 @@ class CallBackSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CallBack
-        fields = ('name', 'number', 'appeal_type_name', 'appeal_type')
+        fields = ('id', 'name', 'number', 'appeal_type_name', 'appeal_type')
 
 
 class SliderImageSerializer(serializers.ModelSerializer):
@@ -104,7 +104,7 @@ class SliderImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SliderImage
-        fields = ('image', 'link')
+        fields = ('id', 'image', 'link')
 
 
 class OurAdvantageSerializer(serializers.ModelSerializer):
@@ -115,4 +115,4 @@ class OurAdvantageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OurAdvantages
-        fields = ('title', 'icon', 'text')
+        fields = ('id', 'title', 'icon', 'text')

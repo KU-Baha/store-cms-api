@@ -206,7 +206,7 @@ class OrderItemAdmin(admin.ModelAdmin):
 
 
 class CustomerForm(forms.ModelForm):
-    favorites = forms.ModelMultipleChoiceField(Product.objects.filter(deleted=False),
+    favorites = forms.ModelMultipleChoiceField(Product.objects.filter(deleted=False), required=False,
                                                label=Customer._meta.get_field('favorites').verbose_name)
 
     class Meta:

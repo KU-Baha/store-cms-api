@@ -17,13 +17,13 @@ class Customer(models.Model):
     phone_number = models.CharField('Телефонный номер', max_length=20, null=True, blank=True)
     country = models.CharField('Страна', max_length=50, null=True, blank=True)
     city = models.CharField('Город', max_length=50, null=True, blank=True)
-    favorites = models.ManyToManyField('Product', verbose_name='Избранные', null=True, blank=True,
-                                       related_name='customer', related_query_name='customers')
+    favorites = models.ManyToManyField('Product', verbose_name='Избранные', related_name='favorites')
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        cart = Cart(customer=self)
-        cart.save()
+        if self._state.adding:
+            cart = Cart(customer=self)
+            cart.save()
 
     def __str__(self):
         return self.user.username

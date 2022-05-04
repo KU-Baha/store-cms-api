@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import (
@@ -44,28 +45,23 @@ class QuestionAnswerViewSet(viewsets.ModelViewSet):
         return Response({'data': serializer.data, 'image': img_serializer.data})
 
 
-class HelpImageViewSet(viewsets.ModelViewSet):
+class HelpImageViewSet(viewsets.ViewSet):
     """
     Изображение на страничке 'Помощь'
     """
     serializer_class = HelpImageSerializer
     queryset = Site.objects.first()
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.queryset
-        serializer = self.get_serializer(instance)
+    @action(methods=["get"], detail=False)
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(self.queryset)
         return Response(serializer.data)
 
-    def update(self, request, *args, **kwargs):
+    @action(methods=["put"], detail=False)
+    def put(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
-        instance = self.queryset
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.serializer_class(self.queryset, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        if getattr(instance, '_prefetched_objects_cache', None):
-            instance._prefetched_objects_cache = {}
-
         return Response(serializer.data)
 
 
@@ -93,86 +89,65 @@ class CallBackViewSet(viewsets.ModelViewSet):
     queryset = CallBack.objects.all()
 
 
-class FooterViewSet(viewsets.ModelViewSet):
+class FooterViewSet(viewsets.ViewSet):
     """
     Футер
     """
     serializer_class = FooterSerializer
-    queryset = Site.objects.all()
+    queryset = Site.objects.first()
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = Site.objects.first()
-        serializer = self.get_serializer(instance)
+    @action(methods=["get"], detail=False)
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(self.queryset)
         return Response(serializer.data)
 
-    def update(self, request, *args, **kwargs):
+    @action(methods=["put"], detail=False)
+    def put(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
-        instance = Site.objects.first()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.serializer_class(self.queryset, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        if getattr(instance, '_prefetched_objects_cache', None):
-            # Если 'prefetch_related' был применен к набору запросов, нам нужно
-            # принудительно аннулировать кеш предварительной выборки экземпляра.
-            instance._prefetched_objects_cache = {}
-
         return Response(serializer.data)
 
 
-class PublicOfferViewSet(viewsets.ModelViewSet):
+class PublicOfferViewSet(viewsets.ViewSet):
     """
     Публичная офера
     """
     serializer_class = PublicOfferSerializer
-    queryset = Site.objects.all()
+    queryset = Site.objects.first()
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = Site.objects.first()
-        serializer = self.get_serializer(instance)
+    @action(methods=["get"], detail=False)
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(self.queryset)
         return Response(serializer.data)
 
-    def update(self, request, *args, **kwargs):
+    @action(methods=["put"], detail=False)
+    def put(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
-        instance = Site.objects.first()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.serializer_class(self.queryset, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        if getattr(instance, '_prefetched_objects_cache', None):
-            # Если 'prefetch_related' был применен к набору запросов, нам нужно
-            # принудительно аннулировать кеш предварительной выборки экземпляра.
-            instance._prefetched_objects_cache = {}
-
         return Response(serializer.data)
 
 
-class AboutUsViewSet(viewsets.ModelViewSet):
+class AboutUsViewSet(viewsets.ViewSet):
     """
     О нас
     """
     serializer_class = AboutUsSerializer
-    queryset = Site.objects.all()
+    queryset = Site.objects.first()
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = Site.objects.first()
-        serializer = self.get_serializer(instance)
+    @action(methods=["get"], detail=False)
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(self.queryset)
         img_queryset = AboutUsImage.objects.all()
         img_serializer = AboutUsImageSerializer(img_queryset, many=True)
         return Response({'data': serializer.data, 'about_images': img_serializer.data})
 
-    def update(self, request, *args, **kwargs):
+    @action(methods=["put"], detail=False)
+    def put(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
-        instance = Site.objects.first()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.serializer_class(self.queryset, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        if getattr(instance, '_prefetched_objects_cache', None):
-            # Если 'prefetch_related' был применен к набору запросов, нам нужно
-            # принудительно аннулировать кеш предварительной выборки экземпляра.
-            instance._prefetched_objects_cache = {}
-
         return Response(serializer.data)
 
 

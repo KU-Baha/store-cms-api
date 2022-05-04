@@ -16,7 +16,8 @@ from .serializers import (
     OrderItemSerializer,
     CustomerSerializer,
     UserSerializer,
-    CartItemSerializer
+    CartItemSerializer,
+    FavoriteSerializer
 )
 from .models import (
     Product,
@@ -46,7 +47,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ('name',)
 
-    @action(methods=['get'], detail=False, url_path='similar-products/(?P<id>\d+)/(?P<qt>\d+)')
+    @action(methods=['get'], detail=False, url_path='similar-products/(?P<pk>\d+)/(?P<qt>\d+)')
     def similar(self, request, pk=None, qt=None):
         """
         Получение похожих товаров
@@ -76,7 +77,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(methods=['get'], detail=False, url_path='novelties/(?P<qt>\d+$)')
+    @action(methods=['get'], detail=False, url_path='novelties/(?P<qt>\d+)')
     def novelties(self, request, qt=None):
         """
         Получение товаров со статусом "Новинки"
@@ -289,3 +290,14 @@ class CartViewSet(viewsets.ViewSet):
         cart_item = CartItem.objects.get(cart=cart, children_product=children_product_id)
         cart_item.delete()
         return Response('Продукт удален из корзины', status=status.HTTP_200_OK)
+
+
+class CustomerFavoriteViewSet(viewsets.ViewSet):
+    """
+    Избранные
+    """
+
+    def retrieve(self, request, *args, **kwargs):
+        customer = Customer.objects.get(pk=self.kwargs['pk'])
+        serializer = FavoriteSerializer(customer)
+        return Response(serializer.data)

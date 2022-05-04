@@ -200,3 +200,13 @@ class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ('children_product', 'quantity')
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    """
+    Избранные
+    """
+    class Meta:
+        model = Customer
+        fields = ('id', 'favorites')
+
