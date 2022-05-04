@@ -297,7 +297,27 @@ class CustomerFavoriteViewSet(viewsets.ViewSet):
     Избранные
     """
 
-    def retrieve(self, request, *args, **kwargs):
-        customer = Customer.objects.get(pk=self.kwargs['pk'])
+    def retrieve(self, request, pk, *args, **kwargs):
+        customer = Customer.objects.get(pk=pk)
+        serializer = FavoriteSerializer(customer)
+        return Response(serializer.data)
+
+    @action(methods=['post'], detail=True, url_path='add/(?P<item_pk>\d+)')
+    def add_item(self, request, pk, item_pk, *args, **kwargs):
+        customer = Customer.objects.get(pk=pk)
+        if Product.objects.filter(deleted=False, pk=item_pk):
+            customer.favorites.add(item_pk)
+            customer.save()
+        else:
+            return Response('Товар с таким id не существует!', status=status.HTTP_400_BAD_REQUEST)
+        serializer = FavoriteSerializer(customer)
+        return Response(serializer.data)
+
+    @action(methods=['put'], detail=True, url_path='delete/(?P<item_pk>\d+)')
+    def delete_item(self, request, pk, item_pk, *args, **kwargs):
+        customer = Customer.objects.get(pk=pk)
+        if int(item_pk) in [x.id for x in customer.favorites.get_queryset()]:
+            customer.favorites.remove(item_pk)
+            customer.save()
         serializer = FavoriteSerializer(customer)
         return Response(serializer.data)

@@ -52,12 +52,11 @@ class HelpImageViewSet(viewsets.ViewSet):
     serializer_class = HelpImageSerializer
     queryset = Site.objects.first()
 
-    @action(methods=["get"], detail=False)
-    def get(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         serializer = self.serializer_class(self.queryset)
         return Response(serializer.data)
 
-    @action(methods=["put"], detail=False)
+    @action(methods=["put"], detail=False, url_path='update')
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         serializer = self.serializer_class(self.queryset, data=request.data, partial=partial)
@@ -96,12 +95,11 @@ class FooterViewSet(viewsets.ViewSet):
     serializer_class = FooterSerializer
     queryset = Site.objects.first()
 
-    @action(methods=["get"], detail=False)
-    def get(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         serializer = self.serializer_class(self.queryset)
         return Response(serializer.data)
 
-    @action(methods=["put"], detail=False)
+    @action(methods=["put"], detail=False, url_path='update')
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         serializer = self.serializer_class(self.queryset, data=request.data, partial=partial)
@@ -116,12 +114,11 @@ class PublicOfferViewSet(viewsets.ViewSet):
     serializer_class = PublicOfferSerializer
     queryset = Site.objects.first()
 
-    @action(methods=["get"], detail=False)
-    def get(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         serializer = self.serializer_class(self.queryset)
         return Response(serializer.data)
 
-    @action(methods=["put"], detail=False)
+    @action(methods=["put"], detail=False, url_path='update')
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         serializer = self.serializer_class(self.queryset, data=request.data, partial=partial)
@@ -136,14 +133,13 @@ class AboutUsViewSet(viewsets.ViewSet):
     serializer_class = AboutUsSerializer
     queryset = Site.objects.first()
 
-    @action(methods=["get"], detail=False)
-    def get(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         serializer = self.serializer_class(self.queryset)
         img_queryset = AboutUsImage.objects.all()
         img_serializer = AboutUsImageSerializer(img_queryset, many=True)
         return Response({'data': serializer.data, 'about_images': img_serializer.data})
 
-    @action(methods=["put"], detail=False)
+    @action(methods=["put"], detail=False, url_path='update')
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         serializer = self.serializer_class(self.queryset, data=request.data, partial=partial)
