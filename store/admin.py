@@ -2,7 +2,19 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django import forms
 from ckeditor.widgets import CKEditorWidget
-from .models import Product, Color, Collection, Order, OrderStatus, OrderItem, ChildrenProduct
+from .models import (
+    Product,
+    Color,
+    Collection,
+    Order,
+    OrderStatus,
+    OrderItem,
+    ChildrenProduct,
+    Customer,
+    Cart,
+    CartItem
+)
+from cloudinary.forms import CloudinaryJsFileField
 
 
 class ProductForm(forms.ModelForm):
@@ -16,6 +28,14 @@ class ProductForm(forms.ModelForm):
         fields = '__all__'
 
 
+class OrderItemInline(admin.StackedInline):
+    """
+    Продукты заказа
+    """
+    model = OrderItem
+    extra = 3
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     """
@@ -27,7 +47,8 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ('deleted',)
     readonly_fields = ('start_date', 'end_date', 'update_date', 'old_price')
     fields = ('name', 'vendor_code', 'collection', 'price', 'old_price', 'discount', 'description', 'size',
-              'number_in_ruler', 'material', 'bestseller', 'novelty', 'start_date', 'end_date', 'update_date', 'deleted')
+              'number_in_ruler', 'material', 'fabric_structure', 'bestseller', 'novelty', 'start_date',
+              'end_date', 'update_date', 'deleted')
     search_fields = ('name', 'vendor_code', 'collection__name')
     form = ProductForm
 
@@ -37,7 +58,9 @@ class ChildrenProductAdmin(admin.ModelAdmin):
     """
     Подпродукт в админке
     """
-    list_display = ('product', 'color', 'start_date', 'end_date', 'update_date', 'get_image', 'amount', 'deleted')
+    image = CloudinaryJsFileField(required=False)
+
+    list_display = ('id', 'product', 'color', 'start_date', 'end_date', 'update_date', 'get_image', 'amount', 'deleted')
     list_display_links = ('product', 'get_image')
     list_filter = ('product', 'color', 'start_date', 'end_date', 'update_date', 'deleted')
     list_editable = ('deleted',)
@@ -57,15 +80,17 @@ class ChildrenProductAdmin(admin.ModelAdmin):
 @admin.register(Collection)
 class CollectionAdmin(admin.ModelAdmin):
     """
-    Коллекция в продукте
+    Коллекция в админке
     """
-    list_display = ('name', 'start_date', 'end_date', 'update_date', 'get_image', 'deleted')
+    image = CloudinaryJsFileField(required=False)
+
+    list_display = ('id', 'name', 'start_date', 'end_date', 'update_date', 'get_image', 'deleted')
     list_display_links = ('name', 'get_image')
     list_filter = ('name', 'start_date', 'end_date', 'update_date', 'deleted')
     list_editable = ('deleted',)
     readonly_fields = ('get_image', 'start_date', 'end_date', 'update_date')
     fields = ('name', 'image', 'get_image', 'start_date', 'end_date', 'update_date', 'deleted')
-    search_fields = ('name', )
+    search_fields = ('name',)
 
     def get_image(self, obj):
         """
@@ -81,20 +106,12 @@ class ColorAdmin(admin.ModelAdmin):
     """
     Цвета в админке
     """
-    list_display = ('color', 'get_color')
+    list_display = ('id', 'color', 'get_color')
     list_display_links = ('color',)
     search_fields = ('color', 'rgb')
 
     def get_color(self, obj):
-        return mark_safe(f'<p style="color: {obj.rgb}">{obj.name}</p>')
-
-
-class OrderItemInline(admin.StackedInline):
-    """
-    Продукты заказа
-    """
-    model = OrderItem
-    extra = 3
+        return mark_safe(f'<p style="color: {obj.rgb}">{obj.color}</p>')
 
 
 @admin.register(Order)
@@ -109,9 +126,10 @@ class OrderAdmin(admin.ModelAdmin):
     list_editable = ('deleted',)
     readonly_fields = ('get_products_numbers_in_ruler', 'get_products_count', 'get_products_sum',
                        'get_products_discount', 'get_total_price', 'start_date', 'end_date', 'update_date')
-    fields = ('first_name', 'last_name', 'mail', 'phone_number', 'country', 'city', 'status', 'get_products_numbers_in_ruler',
-              'get_products_count', 'get_products_sum', 'get_products_discount', 'get_total_price',
-              'start_date', 'end_date', 'update_date', 'deleted')
+    fields = (
+        'first_name', 'last_name', 'mail', 'phone_number', 'country', 'city', 'status', 'get_products_numbers_in_ruler',
+        'get_products_count', 'get_products_sum', 'get_products_discount', 'get_total_price',
+        'start_date', 'end_date', 'update_date', 'deleted')
     search_fields = ('first_name', 'last_name', 'country', 'city')
     inlines = (OrderItemInline,)
 
@@ -119,11 +137,11 @@ class OrderAdmin(admin.ModelAdmin):
         return OrderItem.objects.filter(order=obj)
 
     def get_products_numbers_in_ruler(self, obj):
-        numbers_in_ruler = set([i.children_product.product.number_in_ruler for i in self.get_products(obj)])
+        numbers_in_ruler = len([i for i in self.get_products(obj)])
         return numbers_in_ruler
 
     def get_products_count(self, obj):
-        products_count = sum([i.children_product.amount for i in self.get_products(obj)])
+        products_count = sum([i.children_product.product.number_in_ruler * i.quantity for i in self.get_products(obj)])
         return products_count
 
     def get_products_sum(self, obj):
@@ -131,11 +149,13 @@ class OrderAdmin(admin.ModelAdmin):
         return products_price
 
     def get_products_discount(self, obj):
-        products_price = sum([i.children_product.product.old_price - i.children_product.product.price if i.children_product.product.old_price else 0 for i in self.get_products(obj)])
+        products_price = sum([
+            i.children_product.product.old_price - i.children_product.product.price if i.children_product.product.old_price else 0
+            for i in self.get_products(obj)])
         return products_price
 
     def get_total_price(self, obj):
-        products_price = sum([i.get_cost() for i in self.get_products(obj)])
+        products_price = sum([i.total_price for i in self.get_products(obj)])
         return products_price
 
     get_products_numbers_in_ruler.short_description = 'Количество в линейках'
@@ -153,11 +173,15 @@ class OrderStatusAdmin(admin.ModelAdmin):
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ('order', 'children_product', 'get_product_price', 'quantity', 'total_price',
+    list_display = ('id', 'order', 'children_product', 'get_product_price', 'quantity', 'total_price',
                     'get_product_color', 'get_product_size', 'get_product_old_price', 'get_product_image')
     list_display_links = ('order', 'children_product')
+    list_filter = ('order',)
     readonly_fields = ('total_price', 'get_product_price', 'get_product_color', 'get_product_size',
                        'get_product_old_price', 'get_product_image')
+    search_fields = ('order__first_name', 'order__last_name', 'children_product__product__name')
+    fields = ('order', 'children_product', 'get_product_price', 'quantity', 'total_price', 'get_product_color',
+              'get_product_size', 'get_product_old_price', 'get_product_image')
 
     def get_product_price(self, obj):
         return obj.children_product.product.price
@@ -179,3 +203,27 @@ class OrderItemAdmin(admin.ModelAdmin):
     get_product_size.short_description = 'Размер'
     get_product_old_price.short_description = 'Старая цена'
     get_product_image.short_description = 'Изображение'
+
+
+class CustomerForm(forms.ModelForm):
+    favorites = forms.ModelMultipleChoiceField(Product.objects.filter(deleted=False), required=False,
+                                               label=Customer._meta.get_field('favorites').verbose_name)
+
+    class Meta:
+        model = Customer
+        fields = '__all__'
+
+
+@admin.register(Customer)
+class CustomerAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'phone_number', 'country', 'city')
+    list_display_links = ('id', 'user', 'phone_number')
+    form = CustomerForm
+
+
+@admin.register(CartItem)
+class CartItemAdmin(admin.ModelAdmin):
+    list_display = ('id', 'cart', 'children_product', 'quantity')
+
+
+admin.site.register(Cart)

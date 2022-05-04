@@ -1,9 +1,36 @@
+from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.core.files.images import get_image_dimensions
 from colorful.fields import RGBColorField
 from datetime import datetime, timezone
+from cloudinary.models import CloudinaryField
+
+
+class Customer(models.Model):
+    """
+    Покупатель
+    """
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    phone_number = models.CharField('Телефонный номер', max_length=20, null=True, blank=True)
+    country = models.CharField('Страна', max_length=50, null=True, blank=True)
+    city = models.CharField('Город', max_length=50, null=True, blank=True)
+    favorites = models.ManyToManyField('Product', verbose_name='Избранные', related_name='favorites')
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self._state.adding:
+            cart = Cart(customer=self)
+            cart.save()
+
+    def __str__(self):
+        return self.user.username
+
+    class Meta:
+        verbose_name = 'Покупатель'
+        verbose_name_plural = 'Покупатели'
 
 
 class Product(models.Model):
@@ -37,6 +64,8 @@ class Product(models.Model):
         # Проверка на удаление
         if self.deleted:
             self.end_date = datetime.now(tz=timezone.utc)
+            for i in Customer.objects.filter(favorites=self):
+                i.favorites.remove(self)
         else:
             self.end_date = None
         # Подсчет скидки
@@ -49,10 +78,13 @@ class Product(models.Model):
         # Валидация на формат размера
         data = self.size.split('-')
         if len(data) != 2 or int(data[0]) > int(data[1]):
-            raise ValidationError('Формат не совпадает! Введите корректные данные!')
+            raise ValidationError('Формат размера не совпадает! Введите корректные данные!')
         # Валидация коллекции
-        if self.collection.deleted:
-            raise ValidationError('Коллекция была удалена! Выберите другую коллекцию')
+        try:
+            if self.collection.deleted:
+                raise ValidationError('Коллекция была удалена! Выберите другую коллекцию')
+        except Collection.DoesNotExist:
+            raise ValidationError('Коллекция не найдена! Выберите другую коллекцию')
 
     class Meta:
         verbose_name = 'Продукт'
@@ -66,9 +98,11 @@ class ChildrenProduct(models.Model):
     Связь с Product и Color
     Внешняя связь с OrderItem
     """
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Продукт', related_name='children_products')
-    color = models.ForeignKey('Color', on_delete=models.DO_NOTHING, verbose_name='Цвет', related_name='children_products')
-    image = models.ImageField('Изображение')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Продукт',
+                                related_name='children_products')
+    color = models.ForeignKey('Color', on_delete=models.DO_NOTHING, verbose_name='Цвет',
+                              related_name='children_products')
+    image = CloudinaryField('Изображение')
     amount = models.PositiveSmallIntegerField('Количество на складе', default=0)
     start_date = models.DateTimeField('Дата создания', auto_now=True)
     end_date = models.DateTimeField('Дата удаления', null=True, blank=True)
@@ -84,15 +118,27 @@ class ChildrenProduct(models.Model):
         super().save(*args, **kwargs)
 
     def clean(self):
-        # Валидация на максимум
-        if len(ChildrenProduct.objects.filter(product=self.product)) > 8:
-            raise ValidationError('Количество цветов не должно превышать 8ми!')
-        # Валидация на цвет
-        if len(ChildrenProduct.objects.filter(product=self.product, color_id=self.color.pk)) > 0 and ChildrenProduct.objects.get(product=self.product, color_id=self.color.pk) != self:
-            raise ValidationError('Подпродукт с таким цветом уже есть!')
+        try:
+            # Проверка это обновление или нет
+            if self._state.adding:
+                # Валидация на максимум
+                if len(ChildrenProduct.objects.filter(product=self.product, deleted=False)) >= 8:
+                    raise ValidationError('Количество цветов не должно превышать 8ми!')
+            # Валидация на цвет
+            product_by_color = ChildrenProduct.objects.filter(product=self.product, color_id=self.color.pk,
+                                                              deleted=False)
+            if len(product_by_color) > 0 and product_by_color[0] != self:
+                raise ValidationError('Подпродукт с таким цветом уже есть!')
+        except ChildrenProduct.DoesNotExist:
+            raise ValidationError('Подпродукт не найден!')
         # Валидация изображения
-        if not (1.5 <= self.image.height / self.image.width <= 1.6):
-            raise ValidationError('Изображение не подходит')
+        if self.image:
+            try:
+                width, height = get_image_dimensions(self.image)
+                if not (1.5 <= height / width <= 1.6):
+                    raise ValidationError('Изображение не подходит')
+            except TypeError:
+                pass
 
     def __str__(self):
         return f'{self.product} - {self.color}: {self.amount}'
@@ -108,7 +154,7 @@ class Collection(models.Model):
     Внешние связи: Product
     """
     name = models.CharField('Название', max_length=50)
-    image = models.ImageField('Изображение')
+    image = CloudinaryField('Изображение', blank=False)
     start_date = models.DateTimeField('Дата создания', auto_now=True)
     end_date = models.DateTimeField('Дата удаления', null=True, blank=True)
     update_date = models.DateTimeField('Дата последнего изменения', auto_now_add=True)
@@ -124,8 +170,13 @@ class Collection(models.Model):
 
     def clean(self):
         # Валидация изображение
-        if not (1.11 <= self.image.height / self.image.width <= 1.19):
-            raise ValidationError('Изображение не подходит')
+        if self.image:
+            try:
+                width, height = get_image_dimensions(self.image)
+                if not (1.11 <= height / width <= 1.19):
+                    raise ValidationError('Изображение не подходит')
+            except TypeError:
+                pass
 
     def __str__(self):
         return self.name
@@ -164,7 +215,7 @@ class Order(models.Model):
     phone_number = models.CharField('Телефонный номер', max_length=20)
     country = models.CharField('Страна', max_length=50)
     city = models.CharField('Город', max_length=50)
-    create_date = models.DateTimeField('Дата оформления', auto_now=True)
+    issue_date = models.DateTimeField('Дата оформления', auto_now=True)
     status = models.ForeignKey('OrderStatus', on_delete=models.DO_NOTHING, verbose_name='Статус заказа', default=1)
     start_date = models.DateTimeField('Дата создания', auto_now=True)
     end_date = models.DateTimeField('Дата удаления', null=True, blank=True)
@@ -192,7 +243,7 @@ class OrderStatus(models.Model):
     Модель статус заказа
     Внешняя связь с Order
     """
-    name = models.CharField('Статус заказа', max_length=15)
+    name = models.CharField('Статус заказа', max_length=20)
 
     def __str__(self):
         return self.name
@@ -208,27 +259,74 @@ class OrderItem(models.Model):
     Связь с Order и ChildrenProduct
     """
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE, verbose_name='Заказ')
-    children_product = models.ForeignKey(ChildrenProduct, related_name='order_items', on_delete=models.DO_NOTHING, verbose_name='Продукт')
+    children_product = models.ForeignKey(ChildrenProduct, related_name='order_items', on_delete=models.DO_NOTHING,
+                                         verbose_name='Продукт')
     quantity = models.PositiveIntegerField('Количество', default=1, validators=[MinValueValidator(1)])
     total_price = models.PositiveIntegerField('Общая цена', null=True, blank=True)
 
     def save(self, *args, **kwargs):
         product = ChildrenProduct.objects.get(pk=self.children_product.pk)
-        # product.amount -= self.quantity
-        # product.save()
+        product.amount -= self.quantity
+        product.save()
         self.total_price = product.product.price * self.quantity
         super().save(*args, **kwargs)
 
+    def delete(self, using=None, keep_parents=False):
+        product = ChildrenProduct.objects.get(pk=self.children_product.pk)
+        product.amount += self.quantity
+        product.save()
+        super(OrderItem, self).delete()
+
     def clean(self):
+        # if not self._state.adding:
+            # raise ValidationError('Обновление запрещено!')
         if self.children_product.amount < self.quantity:
             raise ValidationError('На складе меньше товаров, чем вы запросили!')
 
-    def get_cost(self):
-        return self.children_product.product.price * self.quantity
-
     def __str__(self):
-        return self.order.__str__()
+        return f'{self.order} - {self.children_product}'
 
     class Meta:
         verbose_name = 'Продукт заказа'
         verbose_name_plural = 'Продукты заказов'
+
+
+class Cart(models.Model):
+    """
+    Корзина
+    """
+    customer = models.OneToOneField(Customer, on_delete=models.CASCADE, verbose_name='Пользователь',
+                                    related_name='cart')
+
+    def __str__(self):
+        return f'Корзина пользователя - {self.customer}'
+
+    class Meta:
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзины'
+
+
+class CartItem(models.Model):
+    """
+    Продукты в корзине
+    """
+    cart = models.ForeignKey(Cart, related_name='cart_items', on_delete=models.CASCADE, verbose_name='Корзина')
+    children_product = models.ForeignKey(ChildrenProduct, related_name='cart_items', on_delete=models.DO_NOTHING,
+                                         verbose_name='Продукт')
+    quantity = models.PositiveIntegerField('Количество', default=1, validators=[MinValueValidator(1)])
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            cart_item = CartItem.objects.filter(cart=self.cart, children_product=self.children_product)
+            if len(cart_item) == 0:
+                super().save(*args, **kwargs)
+            else:
+                raise Exception('В корзине уже существует такой продукт!')
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.cart} - {self.children_product}'
+
+    class Meta:
+        verbose_name = 'Продукт корзины'
+        verbose_name_plural = 'Продукты корзин'
